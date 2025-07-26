@@ -83,7 +83,7 @@ impl EscrowFactory {
             // If so, then we do nothing
             Some(_) => (),
             // Else, we increment the native amount by 1
-            None => native_amount = native_amount.add(&U256::from_u32(&env, 1)),
+            None => native_amount = native_amount.add(&dst_immutables.amount),
         }
 
         // Todo here: implement the stellar native timelock: https://github.com/stellar/soroban-examples/tree/v22.0.1/timelock
