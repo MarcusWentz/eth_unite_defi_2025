@@ -4,6 +4,8 @@ use soroban_sdk::{
     Bytes, BytesN, Env, String, Symbol, Vec, U256,
 };
 
+use super::timelocks::{Stage, Timelocks};
+
 // CONTRACTS
 
 // Escrow factory, responsible of deploying escrows once a user trades
@@ -49,6 +51,7 @@ pub enum EscrowType {
 pub enum Error {
     EscrowWasmNotAvailable = 1,
     InsufficientEscrowBalance = 2,
+    InvalidCreationTime = 3,
 }
 
 // Events data types
@@ -72,9 +75,9 @@ impl EscrowFactory {
     // Function for creating destination chain escrow contract
     pub fn create_dst_escrow(
         env: Env,
-        dst_immutables: Immutables,
+        mut dst_immutables: Immutables,
         // Prefixing this with underscore for now, once timelock is implemented we can remove the underscore
-        _src_cancellaqtion_timestamp: U256,
+        src_cancellaqtion_timestamp: U256,
     ) -> Result<Address, Error> {
         // First we instantiate the native amount field
         let mut native_amount = dst_immutables.safety_deposit.clone();
@@ -99,7 +102,23 @@ impl EscrowFactory {
             return Err(Error::InsufficientEscrowBalance);
         };
 
-        // Todo here: implement the stellar native timelock: https://github.com/stellar/soroban-examples/tree/v22.0.1/timelock
+        // Swap out deployment time
+        dst_immutables.timelocks = Timelocks::set_deployed_at(
+            &env,
+            dst_immutables.timelocks,
+            U256::from_u128(&env, env.ledger().timestamp() as u128),
+        );
+
+        // Make sure that the deployment time is valid
+        if Timelocks::get(
+            &env,
+            dst_immutables.timelocks.clone(),
+            Stage::DstCancellation,
+        )
+        .gt(&src_cancellaqtion_timestamp)
+        {
+            return Err(Error::InvalidCreationTime);
+        };
 
         // Extract values before moving dst_immutables
         let maker = dst_immutables.maker.clone();
