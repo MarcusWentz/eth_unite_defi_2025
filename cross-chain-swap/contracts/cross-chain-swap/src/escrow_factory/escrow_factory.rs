@@ -87,12 +87,14 @@ impl EscrowFactory {
             None => native_amount = native_amount.add(&dst_immutables.amount),
         }
 
+        // fetching the msg.value
         let msg_value: U256 = env
             .storage()
             .persistent()
             .get(&symbol_short!("value"))
             .unwrap();
 
+        // Making sure native amount does not excede the msg.value
         if native_amount.lt(&msg_value) {
             return Err(Error::InsufficientEscrowBalance);
         };
