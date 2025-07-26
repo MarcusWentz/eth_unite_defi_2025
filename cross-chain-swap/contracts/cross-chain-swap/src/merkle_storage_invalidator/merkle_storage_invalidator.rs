@@ -1,6 +1,5 @@
 #![no_std]
-mod merkle_proof;
-use merkle_proof::process_proof;
+use super::merkle_proof::process_proof;
 use soroban_sdk::{
     contract, contractimpl, contracttype, log, symbol_short, Bytes, BytesN, Env, Symbol, Vec, U256,
 };
@@ -68,5 +67,3 @@ impl MerkleStorageInvalidatorContract {
         key
     }
 }
-
-mod test;
