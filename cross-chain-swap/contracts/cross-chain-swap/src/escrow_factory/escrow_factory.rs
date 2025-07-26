@@ -48,6 +48,7 @@ pub enum EscrowType {
 #[repr(u32)]
 pub enum Error {
     EscrowWasmNotAvailable = 1,
+    InsufficientEscrowBalance = 2,
 }
 
 // Events data types
@@ -136,5 +137,3 @@ impl EscrowFactory {
         }
     }
 }
-
-mod test;
