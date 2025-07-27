@@ -44,8 +44,9 @@ pub struct DstEscrowCreated {
 const ESCROW_CREATED: Symbol = symbol_short!("ESCR");
 
 // STORAGE SYMBOLS
-const DST_ESCROW_WASM: Symbol = symbol_short!("DSTWASM");
-const SRC_ESCROW_WASM: Symbol = symbol_short!("SRCWASM");
+const DST_ESCROW_WASM: Symbol = symbol_short!("DST_WASM");
+const SRC_ESCROW_WASM: Symbol = symbol_short!("SRC_WASM");
+const XML_ADDRESS: Symbol = symbol_short!("XML_ADD");
 
 // Contract implementation
 #[contractimpl]
@@ -61,15 +62,19 @@ impl EscrowFactory {
         let mut native_amount = dst_immutables.safety_deposit.clone();
 
         // Then if the requested token is native XML...
-        match dst_immutables.token {
-            // If so, then we do nothing
-            Some(_) => (),
-            // Else, we increment the native amount by 1
-            None => native_amount = native_amount.add(&dst_immutables.amount),
+        if env
+            .storage()
+            .instance()
+            .get::<_, Address>(&XML_ADDRESS)
+            .unwrap()
+            == dst_immutables.token
+        {
+            // We increment the native amount by 1
+            native_amount = native_amount + dst_immutables.amount;
         }
 
         // fetching the msg.value
-        let msg_value: U256 = env
+        let msg_value: i128 = env
             .storage()
             .persistent()
             .get(&symbol_short!("value"))
