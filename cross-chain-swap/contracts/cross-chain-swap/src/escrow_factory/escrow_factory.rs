@@ -1,6 +1,6 @@
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address,
-    BytesN, Env, Symbol, U256,
+    contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address, BytesN,
+    Env, Symbol, U256,
 };
 
 use super::timelocks::{Stage, Timelocks};
@@ -11,14 +11,6 @@ use escrow::Immutables;
 // Escrow factory, responsible of deploying escrows once a user trades
 #[contract]
 pub struct EscrowFactory;
-
-// Destination chain escrow contract
-#[contract]
-pub struct EscrowDst;
-
-// Source chain escrow contract
-#[contract]
-pub struct EscrowSrc;
 
 // CUSTOM DATA TYPES
 
@@ -90,14 +82,14 @@ impl EscrowFactory {
 
         // Swap out deployment time
         dst_immutables.timelocks = Timelocks::set_deployed_at(
-            &env,
+            env.clone(),
             dst_immutables.timelocks,
             U256::from_u128(&env, env.ledger().timestamp() as u128),
         );
 
         // Make sure that the deployment time is valid
         if Timelocks::get(
-            &env,
+            env.clone(),
             dst_immutables.timelocks.clone(),
             Stage::DstCancellation,
         )
@@ -113,7 +105,7 @@ impl EscrowFactory {
 
         // Generate salt similar to keccak256(immutables, ESCROW_IMMUTABLES_SIZE)
         // Hash the entire immutables struct to create a deterministic salt
-        let salt = env.crypto().sha256(&dst_immutables.to_xdr(&env));
+        let salt = env.crypto().keccak256(&dst_immutables.to_xdr(&env));
 
         // Fetching our wasm hash for dst escrow
         let wasm_hash = env
@@ -123,7 +115,10 @@ impl EscrowFactory {
             .ok_or(Error::EscrowWasmNotAvailable)?;
 
         // Deploying the contract
-        let escrow = env.deployer().with_address(maker, salt).deploy(wasm_hash);
+        let escrow = env
+            .deployer()
+            .with_address(maker, salt)
+            .deploy_v2(wasm_hash, ());
 
         // We emit the event
         env.events().publish(
