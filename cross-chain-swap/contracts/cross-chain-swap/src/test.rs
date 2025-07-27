@@ -1,7 +1,12 @@
 #![cfg(test)]
 
-use super::*;
+// use super::*;
 use crate::merkle_storage_invalidator::{commutative_keccak256, concat_bytes, process_proof, MerkleProof, MerkleStorageInvalidatorContract, MerkleStorageInvalidatorContractClient, ValidationData, TakerData, LAST_VALIDATED};
+use crate::escrow_factory::timelocks::{
+    Timelocks,
+    TimelocksClient,
+    Stage
+};
 use soroban_sdk::{vec, BytesN, Env, U256, symbol_short};
 
 #[test]
@@ -270,3 +275,40 @@ fn test_large_merkle_proof() {
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn test_timelock_get_return_1() {
+    let env = Env::default();
+    let contract_id = env.register(Timelocks, ());
+    let client = TimelocksClient::new(&env, &contract_id);
+
+    let stage_status : Stage = Stage::SrcWithdrawal;
+    let timelock_input_u256 : U256 = U256::from_u32(&env, 1);
+
+    // Expect to return 1 as type uin256.
+    assert_eq!(
+        client.get(&timelock_input_u256, &stage_status), 
+        U256::from_u32(&env, 1)
+    );
+
+}
+
+#[test]
+fn test_timelock_set_deployed_at_mask_value_0() {
+    let env = Env::default();
+    let contract_id = env.register(Timelocks, ());
+    let client = TimelocksClient::new(&env, &contract_id);
+
+    let timelock_input_u256 : U256 = U256::from_u32(&env, 100);
+    let mask_value_input_u256 : U256 = U256::from_u32(&env, 0);
+
+    let test_return_value : U256 = client.set_deployed_at(&timelock_input_u256, &mask_value_input_u256);
+
+    // Expect to return 1 as type uin256.
+    assert_eq!(
+        test_return_value, 
+        U256::from_u32(&env, 100)
+    );
+
+}
+
