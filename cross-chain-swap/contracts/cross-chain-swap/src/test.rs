@@ -294,21 +294,21 @@ fn test_timelock_get_return_1() {
 }
 
 #[test]
-fn test_timelock_set_deployed_at_return_1() {
+fn test_timelock_set_deployed_at_mask_value_0() {
     let env = Env::default();
     let contract_id = env.register(Timelocks, ());
     let client = TimelocksClient::new(&env, &contract_id);
 
-    let timelock_input_u256 : U256 = U256::from_u32(&env, 1);
-    let value_input : U256 = U256::from_u32(&env, 1);
+    let timelock_input_u256 : U256 = U256::from_u32(&env, 100);
+    let mask_value_input_u256 : U256 = U256::from_u32(&env, 0);
 
-    let test_return_value : U256 = client.set_deployed_at(&timelock_input_u256, &value_input);
+    let test_return_value : U256 = client.set_deployed_at(&timelock_input_u256, &mask_value_input_u256);
 
-    // // Expect to return 1 as type uin256.
-    // assert_eq!(
-    //     test_return_value, 
-    //     U256::from_u32(&env, 1)
-    // );
+    // Expect to return 1 as type uin256.
+    assert_eq!(
+        test_return_value, 
+        U256::from_u32(&env, 100)
+    );
 
 }
 
