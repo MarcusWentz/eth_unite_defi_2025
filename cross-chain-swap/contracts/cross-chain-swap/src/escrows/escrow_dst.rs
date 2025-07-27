@@ -14,8 +14,9 @@ pub struct EscrowDst;
 impl BaseEscrow for EscrowDst {}
 
 // EVENTS SYMBOLS
-const ESCROW: Symbol = symbol_short!("ESCROW");
+const ESCROW_DST: Symbol = symbol_short!("ESC_DST");
 
+// Contract implementation
 #[contractimpl]
 impl EscrowDst {
     pub fn withdraw(env: Env, secret: BytesN<32>, immutables: Immutables) -> Result<(), Error> {
@@ -82,7 +83,7 @@ impl EscrowDst {
         );
 
         env.events()
-            .publish((&ESCROW, symbol_short!("canceled")), ());
+            .publish((&ESCROW_DST, symbol_short!("canceled")), ());
 
         Ok(())
     }
@@ -97,7 +98,7 @@ impl EscrowDst {
             immutables.amount,
         );
         env.events()
-            .publish((&ESCROW, symbol_short!("withdraw")), secret);
+            .publish((&ESCROW_DST, symbol_short!("withdraw")), secret);
         Ok(())
     }
 }
