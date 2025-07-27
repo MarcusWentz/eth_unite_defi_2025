@@ -69,7 +69,8 @@ impl EscrowFactory {
     // Function for creating destination chain escrow contract
     pub fn create_dst_escrow(
         env: Env,
-        mut dst_immutables: Immutables,
+        // dst_immutables is modified later, so #[allow(unused_mut)] is used to hide the warning that it doesn't need mut when it does.
+        #[allow(unused_mut)] mut dst_immutables: Immutables,
         // Prefixing this with underscore for now, once timelock is implemented we can remove the underscore
         src_cancellaqtion_timestamp: U256,
     ) -> Result<Address, Error> {
