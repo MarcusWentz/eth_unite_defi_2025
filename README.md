@@ -1,3 +1,8 @@
-# eth_unite_defi_2025
+# ETH Unite DeFi 2025
 
-gm
+## Create a new contract interface:
+
+```bash
+stellar contract init . --name adder_interface
+stellar contract init . --name add_extra_contract
+```

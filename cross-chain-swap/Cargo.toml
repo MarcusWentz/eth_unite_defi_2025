@@ -5,7 +5,10 @@ members = [
 ]
 
 [workspace.dependencies]
-soroban-sdk = "21.0.0"
+soroban-sdk = "22.0.0"
+order-interface = { path = "contracts/order-interface" }
+resolver-interface = { path = "contracts/resolver-interface" }
+
 
 [profile.release]
 opt-level = "z"

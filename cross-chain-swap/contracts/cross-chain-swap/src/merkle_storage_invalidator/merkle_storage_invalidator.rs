@@ -1,10 +1,9 @@
-#![no_std]
 use super::merkle_proof::process_proof;
 use soroban_sdk::{
     contract, contractimpl, contracttype, log, symbol_short, Bytes, BytesN, Env, Symbol, Vec, U256,
 };
 
-const LAST_VALIDATED: Symbol = symbol_short!("VALIDATED");
+pub const LAST_VALIDATED: Symbol = symbol_short!("VALIDATED");
 
 #[contract]
 pub struct MerkleStorageInvalidatorContract;
