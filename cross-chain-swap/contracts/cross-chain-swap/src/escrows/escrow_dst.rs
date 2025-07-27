@@ -1,4 +1,5 @@
-use super::base_escrow::BaseEscrow;
+use super::base_escrow::{BaseEscrow, Error};
+use crate::escrow_factory::timelocks::{Stage, Timelocks};
 use escrow::Immutables;
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address, BytesN,
@@ -10,6 +11,44 @@ use soroban_sdk::{
 pub struct EscrowDst;
 
 #[contractimpl]
-impl BaseEscrow for EscrowDst {
-    fn withdraw(secret: BytesN<32>, immutables: Immutables)
+impl BaseEscrow for EscrowDst {}
+
+// EVENTS SYMBOLS
+const ESCROW: Symbol = symbol_short!("ESCROW");
+
+#[contractimpl]
+impl EscrowDst {
+    fn cancel(env: Env, immutables: Immutables) -> Result<(), Error> {
+        Self::only_taker(env.clone(), immutables.clone())?;
+        Self::validate_immutables(env.clone(), immutables.clone())?;
+        Self::only_after(
+            env.clone(),
+            Timelocks::get(env.clone(), immutables.timelocks, Stage::DstCancellation),
+        )?;
+        Self::uni_transfer(
+            env.clone(),
+            immutables.token,
+            immutables.taker,
+            immutables.amount,
+        );
+
+        env.events()
+            .publish((&ESCROW, symbol_short!("canceled")), ());
+
+        Ok(())
+    }
+
+    fn withdraw(env: Env, secret: BytesN<32>, immutables: Immutables) -> Result<(), Error> {
+        Self::validate_immutables(env.clone(), immutables.clone())?;
+        Self::only_valid_secret(env.clone(), secret.clone(), immutables.clone())?;
+        Self::uni_transfer(
+            env.clone(),
+            immutables.token,
+            immutables.maker,
+            immutables.amount,
+        );
+        env.events()
+            .publish((&ESCROW, symbol_short!("withdraw")), secret);
+        Ok(())
+    }
 }

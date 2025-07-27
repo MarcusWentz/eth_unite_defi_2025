@@ -9,8 +9,8 @@ pub struct Immutables {
     pub hashlock: BytesN<32>,
     pub maker: Address,
     pub taker: Address,
-    pub token: Option<Address>,
-    pub amount: U256,
+    pub token: Address,
+    pub amount: i128,
     pub safety_deposit: U256,
     pub timelocks: U256,
 }
