@@ -18,6 +18,55 @@ const ESCROW: Symbol = symbol_short!("ESCROW");
 
 #[contractimpl]
 impl EscrowDst {
+    pub fn withdraw(env: Env, secret: BytesN<32>, immutables: Immutables) -> Result<(), Error> {
+        Self::only_taker(env.clone(), immutables.clone())?;
+        Self::only_after(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::DstWithdrawal,
+            ),
+        )?;
+        Self::only_before(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::DstCancellation,
+            ),
+        )?;
+        Self::withdraw_priv(env, secret, immutables);
+        Ok(())
+    }
+
+    pub fn public_withdraw(
+        env: Env,
+        secret: BytesN<32>,
+        immutables: Immutables,
+    ) -> Result<(), Error> {
+        Self::only_acess_token_holder(env.clone())?;
+        Self::only_after(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::DstPublicWithdrawal,
+            ),
+        )?;
+        Self::only_before(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::DstCancellation,
+            ),
+        )?;
+        Self::withdraw_priv(env, secret, immutables)?;
+
+        Ok(())
+    }
+
     fn cancel(env: Env, immutables: Immutables) -> Result<(), Error> {
         Self::only_taker(env.clone(), immutables.clone())?;
         Self::validate_immutables(env.clone(), immutables.clone())?;
@@ -38,7 +87,7 @@ impl EscrowDst {
         Ok(())
     }
 
-    fn withdraw(env: Env, secret: BytesN<32>, immutables: Immutables) -> Result<(), Error> {
+    fn withdraw_priv(env: Env, secret: BytesN<32>, immutables: Immutables) -> Result<(), Error> {
         Self::validate_immutables(env.clone(), immutables.clone())?;
         Self::only_valid_secret(env.clone(), secret.clone(), immutables.clone())?;
         Self::uni_transfer(
