@@ -1,7 +1,6 @@
-#![no_std]
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, vec, xdr::ToXdr, Address,
-    Bytes, BytesN, Env, String, Symbol, Vec, U256,
+    contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address,
+    BytesN, Env, Symbol, U256,
 };
 
 use super::timelocks::{Stage, Timelocks};

@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contracttype, vec, Env, String, Vec, U256, Address};
+use soroban_sdk::{contracttype, U256, Address};
 
 /// Order structure for cross-chain swaps
 #[contracttype]

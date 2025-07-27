@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, contracttype, Env, Address, Symbol, symbol_short, Error, U256, Bytes, BytesN};
+use soroban_sdk::{contract, contractimpl, Env, Address, Symbol, symbol_short, Error, U256, Bytes, BytesN};
 use resolver_interface::ResolverInterface;
 use order_interface::Order;
 use escrow::Immutables as EscrowImmutables;

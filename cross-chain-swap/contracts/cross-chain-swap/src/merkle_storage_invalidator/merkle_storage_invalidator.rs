@@ -1,4 +1,3 @@
-#![no_std]
 use super::merkle_proof::process_proof;
 use soroban_sdk::{
     contract, contractimpl, contracttype, log, symbol_short, Bytes, BytesN, Env, Symbol, Vec, U256,
