@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::resolver::{resolver};
+use resolver::{resolver};
 use soroban_sdk::{
     symbol_short,
     testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation},

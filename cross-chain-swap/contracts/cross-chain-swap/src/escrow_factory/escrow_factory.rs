@@ -5,6 +5,7 @@ use soroban_sdk::{
 };
 
 use super::timelocks::{Stage, Timelocks};
+use escrow::Immutables;
 
 // CONTRACTS
 
@@ -21,20 +22,6 @@ pub struct EscrowDst;
 pub struct EscrowSrc;
 
 // CUSTOM DATA TYPES
-
-// Data for creating the escrow contracts
-#[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Immutables {
-    order_hash: BytesN<32>,
-    hashlock: BytesN<32>,
-    maker: Address,
-    taker: Address,
-    token: Option<Address>,
-    amount: U256,
-    safety_deposit: U256,
-    timelocks: U256,
-}
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
