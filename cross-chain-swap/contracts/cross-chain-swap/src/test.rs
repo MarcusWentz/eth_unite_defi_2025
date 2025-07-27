@@ -2,6 +2,7 @@
 
 // use super::*;
 use crate::merkle_storage_invalidator::{commutative_keccak256, concat_bytes, process_proof, MerkleProof, MerkleStorageInvalidatorContract, MerkleStorageInvalidatorContractClient, ValidationData, TakerData, LAST_VALIDATED};
+use crate::escrow_factory::timelocks::Timelocks;
 use soroban_sdk::{vec, BytesN, Env, U256, symbol_short};
 
 #[test]
@@ -269,4 +270,10 @@ fn test_large_merkle_proof() {
     }
 
     assert_eq!(result, expected);
+}
+
+#[test]
+fn test_timelock_load() {
+    let env = Env::default();
+    let contract_id = env.register(Timelocks, ());
 }
