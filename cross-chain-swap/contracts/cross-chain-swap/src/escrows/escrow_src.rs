@@ -19,7 +19,66 @@ const ESCROW_SRC: Symbol = symbol_short!("ESC_SRC");
 // Contract implementation
 #[contractimpl]
 impl EscrowSrc {
-    pub fn public_withdrawal(
+    pub fn withdraw(env: Env, secret: BytesN<32>, immutables: Immutables) -> Result<(), Error> {
+        Self::only_taker(env.clone(), immutables.clone())?;
+        Self::only_after(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::SrcWithdrawal,
+            ),
+        )?;
+        Self::only_before(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::SrcCancellation,
+            ),
+        )?;
+        Self::withdraw_to_priv(
+            env.clone(),
+            secret,
+            env.storage()
+                .persistent()
+                .get(&symbol_short!("sender"))
+                .unwrap(),
+            immutables,
+        )?;
+
+        Ok(())
+    }
+
+    pub fn withdraw_to(
+        env: Env,
+        secret: BytesN<32>,
+        target: Address,
+        immutables: Immutables,
+    ) -> Result<(), Error> {
+        Self::only_taker(env.clone(), immutables.clone())?;
+        Self::only_after(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::SrcWithdrawal,
+            ),
+        )?;
+        Self::only_before(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::SrcCancellation,
+            ),
+        )?;
+        Self::withdraw_to_priv(env, secret, target, immutables)?;
+
+        Ok(())
+    }
+
+    pub fn public_withdraw(
         env: Env,
         secret: BytesN<32>,
         immutables: Immutables,
