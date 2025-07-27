@@ -1,6 +1,14 @@
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address,
-    BytesN, Env, Symbol, U256,
+    contract, contracterror, contractimpl, contracttype, symbol_short, 
+    xdr::ToXdr, 
+    Address,
+    BytesN, 
+    Env, 
+    Symbol, 
+    U256, 
+    Vec, 
+    Val, 
+    //IntoVal
 };
 
 use super::timelocks::{Stage, Timelocks};
@@ -123,7 +131,10 @@ impl EscrowFactory {
             .ok_or(Error::EscrowWasmNotAvailable)?;
 
         // Deploying the contract
-        let escrow = env.deployer().with_address(maker, salt).deploy(wasm_hash);
+        // let escrow = env.deployer().with_address(maker, salt).deploy(wasm_hash);
+        // let constructor_args: Vec<Val> = (5u32,).into_val(&env);
+        let constructor_args: Vec<Val> = Vec::new(&env);
+        let escrow = env.deployer().with_address(maker, salt).deploy_v2(wasm_hash, constructor_args);
 
         // We emit the event
         env.events().publish(
