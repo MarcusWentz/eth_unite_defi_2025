@@ -1,4 +1,4 @@
-# eth_unite_defi_2025
+# ETH Unite DeFi 2025
 
 ## Create a new contract interface:
 
