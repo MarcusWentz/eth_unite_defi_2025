@@ -19,7 +19,62 @@ const ESCROW_SRC: Symbol = symbol_short!("ESC_SRC");
 // Contract implementation
 #[contractimpl]
 impl EscrowSrc {
-    fn withdraw_to(
+    pub fn public_withdrawal(
+        env: Env,
+        secret: BytesN<32>,
+        immutables: Immutables,
+    ) -> Result<(), Error> {
+        Self::only_acess_token_holder(env.clone())?;
+        Self::only_after(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::SrcPublicWithdrawal,
+            ),
+        )?;
+        Self::only_before(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::SrcCancellation,
+            ),
+        )?;
+        Self::withdraw_to_priv(env, secret, immutables.taker.clone(), immutables)?;
+
+        Ok(())
+    }
+
+    pub fn cancel(env: Env, immutables: Immutables) -> Result<(), Error> {
+        Self::only_taker(env.clone(), immutables.clone())?;
+        Self::only_after(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::SrcCancellation,
+            ),
+        );
+        Self::cancel_priv(env, immutables)?;
+        Ok(())
+    }
+
+    pub fn public_cancel(env: Env, immutables: Immutables) -> Result<(), Error> {
+        Self::only_acess_token_holder(env.clone())?;
+        Self::only_after(
+            env.clone(),
+            Timelocks::get(
+                env.clone(),
+                immutables.timelocks.clone(),
+                Stage::SrcPublicCancellation,
+            ),
+        )?;
+        Self::cancel_priv(env, immutables)?;
+        Ok(())
+    }
+
+    fn withdraw_to_priv(
         env: Env,
         secret: BytesN<32>,
         target: Address,
@@ -48,7 +103,7 @@ impl EscrowSrc {
         Ok(())
     }
 
-    fn cancel(env: Env, immutables: Immutables) -> Result<(), Error> {
+    fn cancel_priv(env: Env, immutables: Immutables) -> Result<(), Error> {
         Self::validate_immutables(env.clone(), immutables.clone())?;
         TokenClient::new(&env, &immutables.token).transfer(
             &env.current_contract_address(),
