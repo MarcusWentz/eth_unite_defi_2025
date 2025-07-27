@@ -1,10 +1,10 @@
-#![no_std]
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, vec, xdr::ToXdr, Address,
-    Bytes, BytesN, Env, String, Symbol, Vec, U256,
+    contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address,
+    BytesN, Env, Symbol, U256,
 };
 
 use super::timelocks::{Stage, Timelocks};
+use escrow::Immutables;
 
 // CONTRACTS
 
@@ -21,20 +21,6 @@ pub struct EscrowDst;
 pub struct EscrowSrc;
 
 // CUSTOM DATA TYPES
-
-// Data for creating the escrow contracts
-#[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Immutables {
-    order_hash: BytesN<32>,
-    hashlock: BytesN<32>,
-    maker: Address,
-    taker: Address,
-    token: Option<Address>,
-    amount: U256,
-    safety_deposit: U256,
-    timelocks: U256,
-}
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
