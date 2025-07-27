@@ -11,6 +11,6 @@ pub struct Immutables {
     pub taker: Address,
     pub token: Address,
     pub amount: i128,
-    pub safety_deposit: U256,
+    pub safety_deposit: i128,
     pub timelocks: U256,
 }

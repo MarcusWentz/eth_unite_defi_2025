@@ -23,6 +23,7 @@ pub enum Error {
 // STORAGE SYMBOLS
 const RESCUE_DELAY: Symbol = symbol_short!("RES_DEL");
 const ACCESS_TOKEN: Symbol = symbol_short!("ACC_TOK");
+const XML_ADDRESS: Symbol = symbol_short!("XML_ADD");
 
 // Contract Implementation
 pub trait BaseEscrow {
@@ -151,5 +152,14 @@ pub trait BaseEscrow {
 
     fn uni_transfer(env: Env, token: Address, to: Address, amount: i128) {
         TokenClient::new(&env, &token).transfer(&env.current_contract_address(), &to, &amount);
+    }
+
+    fn xlm_transfer(env: Env, to: Address, amount: i128) {
+        let xlm = env
+            .storage()
+            .instance()
+            .get::<_, Address>(&XML_ADDRESS)
+            .unwrap();
+        TokenClient::new(&env, &xlm).transfer(&env.current_contract_address(), &to, &amount);
     }
 }
