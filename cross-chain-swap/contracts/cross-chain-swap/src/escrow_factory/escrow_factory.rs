@@ -8,7 +8,6 @@ use soroban_sdk::{
     U256, 
     Vec, 
     Val, 
-    //IntoVal
 };
 
 use super::timelocks::{Stage, Timelocks};
@@ -19,14 +18,6 @@ use escrow::Immutables;
 // Escrow factory, responsible of deploying escrows once a user trades
 #[contract]
 pub struct EscrowFactory;
-
-// Destination chain escrow contract
-#[contract]
-pub struct EscrowDst;
-
-// Source chain escrow contract
-#[contract]
-pub struct EscrowSrc;
 
 // CUSTOM DATA TYPES
 
@@ -60,8 +51,9 @@ pub struct DstEscrowCreated {
 const ESCROW_CREATED: Symbol = symbol_short!("ESCR");
 
 // STORAGE SYMBOLS
-const DST_ESCROW_WASM: Symbol = symbol_short!("DSTWASM");
-const SRC_ESCROW_WASM: Symbol = symbol_short!("SRCWASM");
+const DST_ESCROW_WASM: Symbol = symbol_short!("DST_WASM");
+const SRC_ESCROW_WASM: Symbol = symbol_short!("SRC_WASM");
+const XML_ADDRESS: Symbol = symbol_short!("XML_ADD");
 
 // Contract implementation
 #[contractimpl]
@@ -78,15 +70,19 @@ impl EscrowFactory {
         let mut native_amount = dst_immutables.safety_deposit.clone();
 
         // Then if the requested token is native XML...
-        match dst_immutables.token {
-            // If so, then we do nothing
-            Some(_) => (),
-            // Else, we increment the native amount by 1
-            None => native_amount = native_amount.add(&dst_immutables.amount),
+        if env
+            .storage()
+            .instance()
+            .get::<_, Address>(&XML_ADDRESS)
+            .unwrap()
+            == dst_immutables.token
+        {
+            // We increment the native amount by 1
+            native_amount = native_amount + dst_immutables.amount;
         }
 
         // fetching the msg.value
-        let msg_value: U256 = env
+        let msg_value: i128 = env
             .storage()
             .persistent()
             .get(&symbol_short!("value"))
@@ -99,14 +95,14 @@ impl EscrowFactory {
 
         // Swap out deployment time
         dst_immutables.timelocks = Timelocks::set_deployed_at(
-            &env,
+            env.clone(),
             dst_immutables.timelocks,
             U256::from_u128(&env, env.ledger().timestamp() as u128),
         );
 
         // Make sure that the deployment time is valid
         if Timelocks::get(
-            &env,
+            env.clone(),
             dst_immutables.timelocks.clone(),
             Stage::DstCancellation,
         )
@@ -122,7 +118,7 @@ impl EscrowFactory {
 
         // Generate salt similar to keccak256(immutables, ESCROW_IMMUTABLES_SIZE)
         // Hash the entire immutables struct to create a deterministic salt
-        let salt = env.crypto().sha256(&dst_immutables.to_xdr(&env));
+        let salt = env.crypto().keccak256(&dst_immutables.to_xdr(&env));
 
         // Fetching our wasm hash for dst escrow
         let wasm_hash = env
@@ -132,10 +128,10 @@ impl EscrowFactory {
             .ok_or(Error::EscrowWasmNotAvailable)?;
 
         // Deploying the contract
-        // let escrow = env.deployer().with_address(maker, salt).deploy(wasm_hash);
-        // let constructor_args: Vec<Val> = (5u32,).into_val(&env);
-        let constructor_args: Vec<Val> = Vec::new(&env);
-        let escrow = env.deployer().with_address(maker, salt).deploy_v2(wasm_hash, constructor_args);
+        let escrow = env
+            .deployer()
+            .with_address(maker, salt)
+            .deploy_v2(wasm_hash, ());
 
         // We emit the event
         env.events().publish(
