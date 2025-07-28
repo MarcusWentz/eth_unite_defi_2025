@@ -114,7 +114,7 @@ impl EscrowSrc {
                 immutables.timelocks.clone(),
                 Stage::SrcCancellation,
             ),
-        );
+        )?;
         Self::cancel_priv(env, immutables)?;
         Ok(())
     }

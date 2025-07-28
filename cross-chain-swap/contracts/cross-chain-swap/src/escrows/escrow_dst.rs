@@ -37,7 +37,7 @@ impl EscrowDst {
                 Stage::DstCancellation,
             ),
         )?;
-        Self::withdraw_priv(env, secret, immutables);
+        Self::withdraw_priv(env, secret, immutables)?;
         Ok(())
     }
 
@@ -68,7 +68,7 @@ impl EscrowDst {
         Ok(())
     }
 
-    fn cancel(env: Env, immutables: Immutables) -> Result<(), Error> {
+    pub fn cancel(env: Env, immutables: Immutables) -> Result<(), Error> {
         Self::only_taker(env.clone(), immutables.clone())?;
         Self::validate_immutables(env.clone(), immutables.clone())?;
         Self::only_after(

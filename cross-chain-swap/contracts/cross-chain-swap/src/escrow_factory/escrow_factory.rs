@@ -76,7 +76,7 @@ impl EscrowFactory {
             == dst_immutables.token
         {
             // We increment the native amount by 1
-            native_amount = native_amount + dst_immutables.amount;
+            natve_amount = native_amount + dst_immutables.amount;
         }
 
         // fetching the msg.value
