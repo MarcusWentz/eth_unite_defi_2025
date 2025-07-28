@@ -4,6 +4,7 @@ use soroban_sdk::{contract, contractimpl, Env, Address, Symbol, symbol_short, Er
 use resolver_interface::ResolverInterface;
 use order_interface::Order;
 use escrow::Immutables as EscrowImmutables;
+pub use escrow_factory::escrow_factory::create_dst_escrow::invoke as create_dst_escrow;
 
 #[contract]
 pub struct ResolverContract;
@@ -50,6 +51,6 @@ impl ResolverInterface for ResolverContract {
         dst_immutables: EscrowImmutables,
         src_cancellation_timestamp: U256,
     ) -> Result<Address, Error> {
-        Ok(Address::from_str(&env, ""))
+        create_dst_escrow(&env, dst_immutables, src_cancellation_timestamp)
     }
 }
