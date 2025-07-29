@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, vec, Address, Env, String, Vec, U256};
+use soroban_sdk::{contract, contractimpl, contracttype, contracttype, vec, Address, Env, String, Vec, U256, U256, Address};
 pub mod consts_trait;
 pub mod maker_traits;
 pub mod taker_traits;

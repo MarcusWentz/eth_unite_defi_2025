@@ -17,7 +17,6 @@ impl BaseEscrow for EscrowSrc {}
 const ESCROW_SRC: Symbol = symbol_short!("ESC_SRC");
 
 // Contract implementation
-#[contractimpl]
 impl EscrowSrc {
     pub fn withdraw(env: Env, secret: BytesN<32>, immutables: Immutables) -> Result<(), Error> {
         Self::only_taker(env.clone(), immutables.clone())?;

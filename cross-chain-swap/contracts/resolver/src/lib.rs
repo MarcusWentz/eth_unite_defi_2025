@@ -53,6 +53,7 @@ impl ResolverInterface for ResolverContract {
         dst_immutables: Immutables,
         src_cancellation_timestamp: U256,
     ) -> Result<Address, Error> {
+        // create_dst_escrow(&env, dst_immutables, src_cancellation_timestamp)
         let escrow_factory_address = Self::get_escrow_factory_address(env.clone());
         
         // Call the escrow factory contract to create the destination escrow
