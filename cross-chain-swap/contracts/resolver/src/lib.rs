@@ -59,8 +59,8 @@ impl ResolverInterface for ResolverContract {
         // Call the escrow factory contract to create the destination escrow
         env.invoke_contract(
             &escrow_factory_address,
-            &symbol_short!("create_d"),
-            vec![dst_immutables.into_val(&env), src_cancellation_timestamp.into_val(&env)],
+            &Symbol::new(&env, "create_dst_escrow"),
+            vec![&env, dst_immutables.into_val(&env), src_cancellation_timestamp.into_val(&env)],
         )
     }
 }
