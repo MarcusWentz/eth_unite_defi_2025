@@ -274,6 +274,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cross-chain-swap"
+version = "0.0.0"
+dependencies = [
+ "escrow",
+ "soroban-sdk",
+ "soroban-token-sdk",
+]
+
+[[package]]
 name = "crypto-bigint"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -605,15 +614,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5971ac85611da7067dbfcabef3c70ebb5606018acd9e2a3903a0da507521e0d5"
 
 [[package]]
-name = "hello-world"
-version = "0.0.0"
-dependencies = [
- "escrow",
- "soroban-sdk",
- "soroban-token-sdk",
-]
-
-[[package]]
 name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -817,6 +817,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
+name = "order"
+version = "0.0.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "order-interface"
 version = "0.0.0"
 dependencies = [
@@ -957,6 +964,7 @@ dependencies = [
 name = "resolver"
 version = "0.0.0"
 dependencies = [
+ "cross-chain-swap",
  "escrow",
  "order-interface",
  "resolver-interface",
