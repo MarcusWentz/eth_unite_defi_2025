@@ -2,8 +2,8 @@ use super::base_escrow::{BaseEscrow, Error};
 use crate::escrow_factory::timelocks::{Stage, Timelocks};
 use escrow::Immutables;
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address, BytesN,
-    Env, Symbol, U256,
+    contract, contractimpl, symbol_short, BytesN,
+    Env, Symbol,
 };
 
 // Source chain escrow contract
@@ -37,7 +37,7 @@ impl EscrowDst {
                 Stage::DstCancellation,
             ),
         )?;
-        Self::withdraw_priv(env, secret, immutables);
+        Self::withdraw_priv(env, secret, immutables)?;
         Ok(())
     }
 
@@ -68,7 +68,7 @@ impl EscrowDst {
         Ok(())
     }
 
-    fn cancel(env: Env, immutables: Immutables) -> Result<(), Error> {
+    pub fn cancel(env: Env, immutables: Immutables) -> Result<(), Error> {
         Self::only_taker(env.clone(), immutables.clone())?;
         Self::validate_immutables(env.clone(), immutables.clone())?;
         Self::only_after(
