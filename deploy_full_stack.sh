@@ -153,7 +153,7 @@ echo "Invoking 'calculate_making_amount' function..."
 INVOKE_RESULT=$(stellar contract invoke --id "${CONTRACT_ID}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- calculate_making_amount ${ORDER})
 success "Invoke result: ${INVOKE_RESULT}"
 
-# 5. EVM Stages
+# 5. EVM Stages 
 read -p "Stellar setup complete. Proceed with EVM stages? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then

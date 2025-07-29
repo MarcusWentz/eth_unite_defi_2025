@@ -1,1 +1,4 @@
 .stellar
+.env
+anvil.log
+node_modules
