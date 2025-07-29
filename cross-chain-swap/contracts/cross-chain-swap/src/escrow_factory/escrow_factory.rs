@@ -1,11 +1,6 @@
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, 
-    xdr::ToXdr, 
-    Address,
-    BytesN, 
-    Env, 
-    Symbol, 
-    U256, 
+    contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address, BytesN,
+    Env, Symbol, U256,
 };
 
 use super::timelocks::{Stage, Timelocks};
@@ -76,7 +71,7 @@ impl EscrowFactory {
             == dst_immutables.token
         {
             // We increment the native amount by 1
-            natve_amount = native_amount + dst_immutables.amount;
+            native_amount = native_amount + dst_immutables.amount;
         }
 
         // fetching the msg.value
