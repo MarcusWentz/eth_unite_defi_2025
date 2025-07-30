@@ -14,3 +14,9 @@ pub struct Immutables {
     pub safety_deposit: i128,
     pub timelocks: U256,
 }
+
+pub mod timelocks;
+pub mod escrow_factory;
+
+#[cfg(test)]
+mod test_escrow_factory;
