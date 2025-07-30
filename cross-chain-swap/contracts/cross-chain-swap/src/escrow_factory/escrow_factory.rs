@@ -140,6 +140,14 @@ impl EscrowFactory {
         Ok(escrow)
     }
 
+    /// @Return
+    pub fn address_of_escrow_src(env: &Env, immutables: Immutables) -> Address {
+        // Extract maker before moving immutables
+        let maker = immutables.maker.clone();
+        let salt = env.crypto().keccak256(&immutables.to_xdr(&env));
+        env.deployer().with_address(maker, salt).deployed_address()
+    }
+
     // Function for storing the different kinds of escrow contract wasm
     pub fn store_escrow_wasm(env: Env, contract_wasm: BytesN<32>, escrow_type: EscrowType) {
         // Store into different storage allocations depending on the escrow type
