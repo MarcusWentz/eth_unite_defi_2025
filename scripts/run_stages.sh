@@ -1,4 +1,4 @@
-run_stages() {
+multichain_run_stages() {
   for STAGE in "${STAGES[@]}"; do
     # Set next block timestamp for time-dependent stages
     if [[ "$CHAIN_ID" == "31337" ]]; then
@@ -29,12 +29,14 @@ run_stages() {
     MODE=$STAGE forge script "$SCRIPT_PATH" --broadcast --rpc-url "$RPC_URL" --root packages/1inch-ref
 
     case "$STAGE" in
-        deployEscrowSrc)
-          ANVIL_DEPLOY_SRC_TIMESTAMP=$(cast block latest --rpc-url "$RPC_URL" | grep timestamp | awk '{print $2}')
-          echo "New anvil deploy src timestamp: $ANVIL_DEPLOY_SRC_TIMESTAMP"
-          ;;
-        deployEscrowDst)
-          deployEscrowDstStellar()
+      deployEscrowSrc)
+        ANVIL_DEPLOY_SRC_TIMESTAMP=$(cast block latest --rpc-url "$RPC_URL" | grep timestamp | awk '{print $2}')
+        echo "New anvil deploy src timestamp: $ANVIL_DEPLOY_SRC_TIMESTAMP"
+        ;;
+      deployEscrowDst)
+        deployEscrowDstStellar
+        echo "New anvil deploy dst timestamp: $ANVIL_DEPLOY_DST_TIMESTAMP"
+        ;;
     esac
 
     echo -n "Continue to the next stage? [y/n]:" 

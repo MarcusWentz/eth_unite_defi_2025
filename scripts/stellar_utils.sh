@@ -1,40 +1,11 @@
-start_stellar_network() {
-  echo "Starting local Stellar network..."
-  docker run -d --rm \
-    -p 8000:8000 \
-    --name ${DOCKER_CONTAINER_NAME} \
-    ${DOCKER_IMAGE} \
-    --local \
-    --enable-soroban-rpc > /dev/null || fail "Failed to start Docker container."
-
-  echo "Waiting for the network to initialize..."
-  sleep 25
-  until curl -s -f -o /dev/null http://localhost:8000/; do
-    echo -n "."
-    sleep 2
-  done
-  
-  echo "Local Stellar network is online."
-}
-
-check_stellar_dependencies() {
+stellar_check_dependencies() {
   echo "Checking for dependencies..."
-  command -v docker &> /dev/null || fail "Docker is not installed."
   command -v cargo &> /dev/null || fail "Cargo (Rust) is not installed."
   command -v stellar &> /dev/null || fail "Stellar CLI is not installed (e.g., via brew)."
   echo "All dependencies are installed."
 }
 
-reset_environment() {
-  echo "Performing clean reset of environment..."
-  docker stop ${DOCKER_CONTAINER_NAME} > /dev/null 2>&1
-  rm -rf ~/.config/stellar
-  rm -rf ./.stellar
-  rm -rf ${STELLAR_PROJECT_DIR}/.config
-  echo "Environment reset."
-}
-
-setup_keypair_and_network() {
+stellar_setup_keypair() {
   echo "Setting up Stellar identity and network config..."
 
   echo "Generating keypair for '${STELLAR_IDENTITY_NAME}'..."
@@ -42,71 +13,84 @@ setup_keypair_and_network() {
   PUBLIC_KEY=$(stellar keys address ${STELLAR_IDENTITY_NAME})
   echo "Using identity '${STELLAR_IDENTITY_NAME}' with Public Key: ${PUBLIC_KEY}"
 
-  echo "Configuring 'local' network profile..."
+  echo "Configuring 'testnet' network profile..."
   stellar network add \
-  --rpc-url http://localhost:8000/soroban/rpc \
-  --network-passphrase "Standalone Network ; February 2017" \
-  "local" > /dev/null
+    --rpc-url https://soroban-testnet.stellar.org \
+    --network-passphrase "Test SDF Network ; September 2015" \
+    "testnet" > /dev/null
 
-  if ! curl -s http://localhost:8000/accounts/${PUBLIC_KEY} | grep '"balance": "10000.0000000"' > /dev/null; then
-    echo "Funding account ${PUBLIC_KEY} with Friendbot..."
-    curl -s "http://localhost:8000/friendbot?addr=${PUBLIC_KEY}" > /dev/null
-    sleep 5
-    if ! curl -s http://localhost:8000/accounts/${PUBLIC_KEY} | grep '"balance": "10000.0000000"' > /dev/null; then
-      fail "Failed to fund account. Check Docker logs."
+  echo "Public Key: ${PUBLIC_KEY}"
+  
+  # Check if account exists first
+  echo "Checking account status..."
+  ACCOUNT_STATUS=$(curl -s "https://horizon-testnet.stellar.org/accounts/${PUBLIC_KEY}" | jq -r '.status // "not_found"')
+  
+  if [[ "$ACCOUNT_STATUS" == "not_found" ]] || [[ "$ACCOUNT_STATUS" == "404" ]]; then
+    echo "Account not found. Funding with Friendbot..."
+    FRIENDBOT_RESPONSE=$(curl -s "https://friendbot.stellar.org?addr=${PUBLIC_KEY}")
+    echo "Friendbot response: ${FRIENDBOT_RESPONSE}"
+    
+    # Wait for account creation
+    sleep 10
+    
+    # Verify account was created
+    ACCOUNT_CHECK=$(curl -s "https://horizon-testnet.stellar.org/accounts/${PUBLIC_KEY}" | jq -r '.account_id // "not_found"')
+    
+    if [[ "$ACCOUNT_CHECK" == "not_found" ]]; then
+      fail "Failed to create account via Friendbot"
     fi
-    echo "Account successfully funded."
+    
+    echo "Account successfully created and funded."
   else
-    echo "Account is already funded."
+    echo "Account already exists."
   fi
+  
+  # Get current balance
+  BALANCE=$(curl -s "https://horizon-testnet.stellar.org/accounts/${PUBLIC_KEY}" | jq -r '.balances[] | select(.asset_type=="native") | .balance')
+  echo "Current XLM balance: ${BALANCE}"
 }
 
-deploy_escrow_factory() {
+stellar_deploy_escrow_factory() {
   echo "Building and deploying '${SOROBAN_PACKAGE_NAME}' contract..."
   cargo build --manifest-path ./${STELLAR_PROJECT_DIR}/contracts/${SOROBAN_PACKAGE_NAME}/Cargo.toml --target wasm32-unknown-unknown --release || fail "Cargo build failed."
   WASM_PATH="./${STELLAR_PROJECT_DIR}/target/wasm32-unknown-unknown/release/${SOROBAN_WASM_NAME}.wasm"
 
   echo "Uploading Wasm..."
-  WASM_HASH=$(stellar contract upload --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local)
+  WASM_HASH=$(stellar contract upload --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network testnet)
   [ -z "$WASM_HASH" ] && fail "Failed to upload Wasm."
   echo "Wasm uploaded. Hash: ${WASM_HASH}"
 
   echo "Deploying contract instance..."
-  CONTRACT_ID=$(stellar contract deploy --wasm-hash "${WASM_HASH}" --source-account ${STELLAR_IDENTITY_NAME} --network local)
+  CONTRACT_ID=$(stellar contract deploy --wasm-hash "${WASM_HASH}" --source-account ${STELLAR_IDENTITY_NAME} --network testnet)
   [ -z "$CONTRACT_ID" ] && fail "Failed to deploy contract."
   echo "Contract deployed! ID: ${CONTRACT_ID}"
-}
-
-cleanup_stellar() {  
-  echo -n "Stop Stellar container? [y/n]: "
-  read answer
-  if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
-    echo "Stopping Stellar container..."
-    docker stop ${DOCKER_CONTAINER_NAME} > /dev/null 2>&1
-    echo "Stellar container stopped."
-  fi
 }
 
 deployEscrowDstStellar() {
   echo "Invoking 'create_dst_escrow' function..."
 
+  # Maker is private key deploying everything
+  # Taker is the address of the swap funder
+
+  echo "---- ID: ${CONTRACT_ID} ----"
+  echo "---- STELLAR_IDENTITY_NAME: ${STELLAR_IDENTITY_NAME} ----"
+
   INVOKE_RESULT=$(stellar contract invoke \
-    --id "${CONTRACT_ID}" \
+  --id "${CONTRACT_ID}" \
   --source-account ${STELLAR_IDENTITY_NAME} \
-  --network local \
+  --network testnet \
   -- \
   create_dst_escrow \
     --dst_immutables '{
     "order_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
     "hashlock": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    "maker": "GAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    "taker": "GBXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 
-    "token": "GCXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    "amount": "1000000",
-    "safety_deposit": "100000",
+    "maker": "{PUBLIC_KEY},
+    "taker": {"PUBLIC_KEY}", 
+    "token": "${DST_TOKEN}",
+    "amount": "${DST_AMOUNT}",
+    "safety_deposit": "${SAFETY_DEPOSIT}",
     "timelocks": "encoded_timelocks_value"
-  }' \
-  --src_cancellation_timestamp "1735689600000"
+    }' \
   )
 
   echo "Invoke result: ${INVOKE_RESULT}"

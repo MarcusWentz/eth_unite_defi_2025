@@ -1,4 +1,4 @@
-start_env() {
+evm_start() {
   # Start anvil if local
   if [[ "$CHAIN_ID" == "31337" ]]; then
     echo "Launching anvil with fork from $RPC_URL and block-time 1..."
@@ -19,7 +19,7 @@ start_env() {
   TIME_DELTA=5
 }
 
-cleanup_evm() {
+evm_cleanup() {
   if [[ "$CHAIN_ID" == "31337" ]]; then
     echo -n "Cleanup anvil instance? [y/n]:" 
     read answer

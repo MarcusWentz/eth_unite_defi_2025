@@ -13,7 +13,7 @@ SCRIPT_PATH="${CURRENT_DIR}/packages/1inch-ref/examples/script/CreateOrder.s.sol
 DOCKER_IMAGE="stellar/quickstart:latest"
 STELLAR_PROJECT_DIR="cross-chain-swap"
 SOROBAN_PACKAGE_NAME="cross-chain-swap"
-SOROBAN_WASM_NAME="escrow_factory"
+SOROBAN_WASM_NAME="cross_chain_swap"
 STELLAR_IDENTITY_NAME="my-deployer"
 DOCKER_CONTAINER_NAME="stellar"
 EVM_PROJECT_DIR="packages/1inch-ref"
@@ -29,6 +29,14 @@ WITHDRAWAL_DST_TIMELOCK=$(jq -r '.withdrawalDstTimelock' "$CONFIG_PATH")
 CANCELLATION_SRC_TIMELOCK=$(jq -r '.cancellationSrcTimelock' "$CONFIG_PATH")
 CANCELLATION_DST_TIMELOCK=$(jq -r '.cancellationDstTimelock' "$CONFIG_PATH")
 
+# Config values
+SRC_TOKEN=$(jq -r '.srcToken' "$CONFIG_PATH")
+DST_TOKEN=$(jq -r '.dstToken' "$CONFIG_PATH")
+SRC_AMOUNT=$(jq -r '.srcAmount' "$CONFIG_PATH")
+DST_AMOUNT=$(jq -r '.dstAmount' "$CONFIG_PATH")
+SAFETY_DEPOSIT=$(jq -r '.safetyDeposit' "$CONFIG_PATH")
+TIME_DELTA=5
+
 main() {
   echo -n "Do you want to rebuild project? Otherwise it will rebuild automatically if necessary [y/n]: "
   read response
@@ -37,23 +45,20 @@ main() {
     forge build
   fi
 
-  check_stellar_dependencies
-  reset_environment
-  
-  # Start networks
-  start_env
-  start_stellar_network
-  setup_keypair_and_network
+  # Network setup
+  stellar_check_dependencies
+  # evm_start
+  stellar_setup_keypair
 
   # Build and deploy Stellar contract factory
-  deploy_escrow_factory
+  stellar_deploy_escrow_factory
 
   # Run stages
-  run_stages
+  # deployEscrowDstStellar
+  multichain_run_stages
   
   # Cleanup
-  cleanup_evm
-  cleanup_stellar
+  evm_cleanup
   
   echo "=== All stages completed ==="
 }
