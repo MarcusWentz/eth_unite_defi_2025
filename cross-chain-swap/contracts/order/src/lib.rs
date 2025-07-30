@@ -3,23 +3,66 @@ use soroban_sdk::{contract, contractimpl, contracttype, vec, Address, Env, Strin
 pub mod consts_trait;
 pub mod maker_traits;
 pub mod taker_traits;
+pub mod dutch_auction;
 
 #[contract]
-pub struct Contract;
+struct OrderProtocol {
 
-// This is a sample contract. Replace this placeholder with your own contract logic.
-// A corresponding test example is available in `test.rs`.
-//
-// For comprehensive examples, visit <https://github.com/stellar/soroban-examples>.
-// The repository includes use cases for the Stellar ecosystem, such as data storage on
-// the blockchain, token swaps, liquidity pools, and more.
-//
-// Refer to the official documentation:
-// <https://developers.stellar.org/docs/build/smart-contracts/overview>.
+}
+
 #[contractimpl]
-impl Contract {
-    pub fn hello(env: Env, to: String) -> Vec<String> {
-        vec![&env, String::from_str(&env, "Hello"), to]
+impl OrderProtocol {
+
+    fn calculate_making_amount(
+        env: &Env,
+        making_amount: U256, // Math.min(amount, remainingMakingAmount)
+    ) -> U256 {
+
+    }
+
+    fn fill(
+        env: &Env,
+        order: Order,
+        orderHash: BytesN<32>,
+        remainingMakingAmount: U256,
+        amount: U256,
+        taker_traits: U256,
+        target: Address,
+        _extension: Bytes,
+        _interaction: Bytes,
+    ) {
+        // ignoring _extension validation phase.
+
+        if !order.maker_traits.is_allowed_sender(target) {
+            panic!("Private order");
+        }
+
+        if order.maker_traits.is_expired() {
+            panic!("Order expired");
+        }
+
+        if order.maker_traits.need_check_epoch_manager() {
+            if order.maker_traits.use_bit_invalidator() {
+                panic!("Epoch manager and bit invalidators are incompatible");
+            }
+            // todo: @Skanislav implement check:
+            // if (!epochEquals(order.maker.get(), order.makerTraits.series(), order.makerTraits.nonceOrEpoch())) revert WrongSeriesNonce();
+        }
+
+        // ignoring extension predicate check.
+
+        // Checks if the taking amount should be calculated based on making amount.
+        let is_making_amount = true; // takerTraits.isMakingAmount
+        if (is_making_amount) {
+            let taking_amount = Self::calculate_taking_amount(
+                extension,
+                making_amount,
+                remaining_making_amount,
+                order_hash,
+            );
+        };
+
+
     }
 }
 

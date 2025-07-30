@@ -1,5 +1,7 @@
 #![no_std]
-use soroban_sdk::{contracttype, Address, BytesN, U256};
+use soroban_sdk::{contracttype, contract, contractimpl, Address, BytesN, U256};
+
+use order::Order;
 
 // Data for creating the escrow contracts
 #[contracttype]
