@@ -966,6 +966,7 @@ version = "0.0.0"
 dependencies = [
  "cross-chain-swap",
  "escrow",
+ "order",
  "order-interface",
  "resolver-interface",
  "soroban-sdk",
