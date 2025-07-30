@@ -1,7 +1,11 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{vec, Env, String};
+use soroban_sdk::{
+    testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation}, 
+    Env, String, Address, U256, Bytes, BytesN};
+
+use crate::{OrderProtocol, OrderProtocolClient, Order};
 
 #[test]
 fn test() {

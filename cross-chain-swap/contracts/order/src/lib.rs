@@ -1,30 +1,29 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, vec, Address, Env, String, Vec, U256};
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Bytes, BytesN, Env, U256};
+use crate::maker_traits::MakerTraitsLib;
 pub mod consts_trait;
 pub mod maker_traits;
 pub mod taker_traits;
 pub mod dutch_auction;
 
 #[contract]
-struct OrderProtocol {
-
-}
+pub struct OrderProtocol;
 
 #[contractimpl]
 impl OrderProtocol {
 
     fn calculate_making_amount(
-        env: &Env,
+        env: Env,
         making_amount: U256, // Math.min(amount, remainingMakingAmount)
     ) -> U256 {
-
+        return U256::from_u32(&env, 0);
     }
 
     fn fill(
-        env: &Env,
+        env: Env,
         order: Order,
-        orderHash: BytesN<32>,
-        remainingMakingAmount: U256,
+        order_hash: BytesN<32>,
+        remaining_making_amount: U256,
         amount: U256,
         taker_traits: U256,
         target: Address,
@@ -33,16 +32,16 @@ impl OrderProtocol {
     ) {
         // ignoring _extension validation phase.
 
-        if !order.maker_traits.is_allowed_sender(target) {
+        if !MakerTraitsLib::is_allowed_sender(&env, order.maker_traits, target) {
             panic!("Private order");
         }
 
-        if order.maker_traits.is_expired() {
+        if MakerTraitsLib::is_expired(&env, &order.maker_traits) {
             panic!("Order expired");
         }
 
-        if order.maker_traits.need_check_epoch_manager() {
-            if order.maker_traits.use_bit_invalidator() {
+        if MakerTraitsLib::need_check_epoch_manager(env, order.maker_traits) {
+            if MakerTraitsLib::use_bit_invalidator(env, order.maker_traits) {
                 panic!("Epoch manager and bit invalidators are incompatible");
             }
             // todo: @Skanislav implement check:
@@ -54,11 +53,9 @@ impl OrderProtocol {
         // Checks if the taking amount should be calculated based on making amount.
         let is_making_amount = true; // takerTraits.isMakingAmount
         if (is_making_amount) {
-            let taking_amount = Self::calculate_taking_amount(
-                extension,
-                making_amount,
-                remaining_making_amount,
-                order_hash,
+            let taking_amount = Self::calculate_making_amount(
+                env,
+                U256::min(order.making_amount, remaining_making_amount),
             );
         };
 
