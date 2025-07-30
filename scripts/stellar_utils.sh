@@ -6,23 +6,17 @@ stellar_check_dependencies() {
 }
 
 stellar_setup_keypair() {
-  echo "Setting up Stellar identity and network config..."
-
   echo "Generating keypair for '${STELLAR_IDENTITY_NAME}'..."
   stellar keys generate ${STELLAR_IDENTITY_NAME} > /dev/null
   PUBLIC_KEY=$(stellar keys address ${STELLAR_IDENTITY_NAME})
   echo "Using identity '${STELLAR_IDENTITY_NAME}' with Public Key: ${PUBLIC_KEY}"
 
-  echo "Configuring 'testnet' network profile..."
   stellar network add \
     --rpc-url https://soroban-testnet.stellar.org \
     --network-passphrase "Test SDF Network ; September 2015" \
     "testnet" > /dev/null
-
-  echo "Public Key: ${PUBLIC_KEY}"
   
-  # Check if account exists first
-  echo "Checking account status..."
+  echo "Checking account exists..."
   ACCOUNT_STATUS=$(curl -s "https://horizon-testnet.stellar.org/accounts/${PUBLIC_KEY}" | jq -r '.status // "not_found"')
   
   if [[ "$ACCOUNT_STATUS" == "not_found" ]] || [[ "$ACCOUNT_STATUS" == "404" ]]; then

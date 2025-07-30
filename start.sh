@@ -54,11 +54,11 @@ main() {
   stellar_deploy_escrow_factory
 
   # Run stages
-  # deployEscrowDstStellar
-  multichain_run_stages
+  deployEscrowDstStellar
+  # multichain_run_stages
   
   # Cleanup
-  evm_cleanup
+  # evm_cleanup
   
   echo "=== All stages completed ==="
 }
