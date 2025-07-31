@@ -83,3 +83,32 @@ pub trait ConstTrait {
         U256::from_u32(&env, 1).shl(251)
     }
 }
+
+/// More efficient bitwise AND implementation
+pub fn u256_bitwise_and(env: &Env, a: &U256, b: &U256) -> U256 {
+    let mut result = U256::from_u32(env, 0);
+    let mut a_temp = a.clone();
+    let mut b_temp = b.clone();
+    let mut power = U256::from_u32(env, 1);
+
+    // Process each bit
+    for _ in 0..256 {
+        // Get the least significant bit of each number
+        let a_lsb = a_temp.rem_euclid(&U256::from_u32(env, 2));
+        let b_lsb = b_temp.rem_euclid(&U256::from_u32(env, 2));
+
+        // If both bits are 1, add the power to result
+        if a_lsb == U256::from_u32(env, 1) && b_lsb == U256::from_u32(env, 1) {
+            result = result.add(&power);
+        }
+
+        // Right shift both numbers by 1
+        a_temp = a_temp.div(&U256::from_u32(env, 2));
+        b_temp = b_temp.div(&U256::from_u32(env, 2));
+
+        // Move to next bit position
+        power = power.mul(&U256::from_u32(env, 2));
+    }
+
+    result
+}
