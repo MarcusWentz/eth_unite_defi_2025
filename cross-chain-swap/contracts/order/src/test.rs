@@ -7,7 +7,10 @@ use crate::{OrderProtocol, OrderProtocolClient, Order};
 #[test]
 fn test() {
     let env = Env::default();
-    let contract_id = env.register(OrderProtocol, ());
+    let dutch_auction_calculator_address = Address::generate(&env);
+
+    let contract_id = env.register(
+        OrderProtocol, (&dutch_auction_calculator_address,));
     let _client = OrderProtocolClient::new(&env, &contract_id);
 
     let _order = Order {

@@ -1,14 +1,13 @@
 #![cfg(test)]
 
 use soroban_sdk::{
-    testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation},
+    testutils::{Address as _,},
     Env, Address, BytesN, U256
 };
 
 use crate::{
     Immutables,
     escrow_factory::EscrowFactory,
-    timelocks::Timelocks,
 };
 
 #[test]

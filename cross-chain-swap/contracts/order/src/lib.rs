@@ -1,24 +1,31 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Bytes, BytesN, Env, U256};
+
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Bytes, BytesN, Env, U256, symbol_short, Symbol};
 use crate::maker_traits::MakerTraitsLib;
 pub mod consts_trait;
 pub mod maker_traits;
 pub mod taker_traits;
 
+const DUTCH_AUCTION_CALCULATOR_ADDRESS: Symbol = symbol_short!("DA_ADDY");
+
 #[contract]
 pub struct OrderProtocol;
 
+
 #[contractimpl]
 impl OrderProtocol {
+    pub fn __constructor(env: Env, da_addy: Address) {
+        env.storage().instance().set(&DUTCH_AUCTION_CALCULATOR_ADDRESS, &da_addy);
+    }
 
-    fn calculate_making_amount(
+    pub fn calculate_making_amount(
         env: Env,
         _making_amount: U256, // Math.min(amount, remainingMakingAmount)
     ) -> U256 {
         return U256::from_u32(&env, 0);
     }
 
-    fn fill(
+    pub fn fill(
         env: Env,
         order: Order,
         _order_hash: BytesN<32>,
