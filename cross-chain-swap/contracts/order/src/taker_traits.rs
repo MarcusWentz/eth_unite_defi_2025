@@ -1,4 +1,4 @@
-use soroban_sdk::{contract, contractimpl, Address, Env, U256};
+use soroban_sdk::{contract, contractimpl, Env, U256};
 
 use crate::consts_trait::{u256_bitwise_and, ConstTrait};
 

@@ -9,7 +9,7 @@ use order_interface::Order;
 use resolver_interface::ResolverInterface;
 use soroban_sdk::{
     contract, contractimpl, symbol_short, vec, Address, Bytes, BytesN, Env, Error, IntoVal, Symbol,
-    U256,
+    U256, log
 };
 
 #[contract]

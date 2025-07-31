@@ -1,4 +1,4 @@
-use soroban_sdk::{contract, Address, Bytes, Env, U256};
+use soroban_sdk::{Bytes, Env, U256};
 
 pub trait ConstTrait {
     const EXPIRATION_OFFSET: u32 = 80;

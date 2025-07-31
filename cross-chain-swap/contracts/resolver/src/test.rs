@@ -2,9 +2,8 @@
 
 use crate::{ResolverContract, ResolverContractClient, Immutables};
 use soroban_sdk::{
-    symbol_short,
-    testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation},
-    IntoVal, Address, BytesN, Env, Val, Vec, String, U256, Bytes
+    testutils::{Address as _,},
+    Address, BytesN, Env, U256, Bytes
 };
 
 #[test]

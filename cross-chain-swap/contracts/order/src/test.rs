@@ -1,9 +1,6 @@
 #![cfg(test)]
 
-use super::*;
-use soroban_sdk::{
-    testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation}, 
-    Env, String, Address, U256, Bytes, BytesN};
+use soroban_sdk::{testutils::{Address as _,}, Env, Address, U256};
 
 use crate::{OrderProtocol, OrderProtocolClient, Order};
 
@@ -11,9 +8,9 @@ use crate::{OrderProtocol, OrderProtocolClient, Order};
 fn test() {
     let env = Env::default();
     let contract_id = env.register(OrderProtocol, ());
-    let client = OrderProtocolClient::new(&env, &contract_id);
+    let _client = OrderProtocolClient::new(&env, &contract_id);
 
-    let order = Order {
+    let _order = Order {
         salt: U256::from_u32(&env, 0),
         maker: Address::generate(&env),
         receiver: Address::generate(&env),

@@ -5,9 +5,11 @@ members = [
 ]
 
 [workspace.dependencies]
-soroban-sdk = "22.0.0"
+soroban-sdk = "22.0.8"
 order-interface = { path = "contracts/order-interface" }
 resolver-interface = { path = "contracts/resolver-interface" }
+order = { path = "contracts/order" }
+dutch-auction = { path = "contracts/dutch-auction" }
 
 
 [profile.release]
