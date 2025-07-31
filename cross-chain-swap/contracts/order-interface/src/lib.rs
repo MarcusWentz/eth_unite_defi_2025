@@ -22,11 +22,3 @@ pub struct Order {
     /// Maker traits
     pub maker_traits: U256,
 }
-
-/*
-
-/// Specifies threshold as maximum allowed takingAmount when takingAmount is zero, otherwise specifies
-// * minimum allowed makingAmount. The 2nd (0 based index) highest bit specifies whether taker wants to skip maker's permit.
-// #[contracttype]
-// pub type TakerTraits = U256;
-*/
