@@ -1,10 +1,7 @@
 use super::base_escrow::{BaseEscrow, Error};
 use crate::escrow_factory::timelocks::{Stage, Timelocks};
 use escrow::Immutables;
-use soroban_sdk::{
-    contract, contractimpl, symbol_short, BytesN,
-    Env, Symbol,
-};
+use soroban_sdk::{contract, contractimpl, symbol_short, BytesN, Env, Symbol};
 
 // Source chain escrow contract
 #[contract]

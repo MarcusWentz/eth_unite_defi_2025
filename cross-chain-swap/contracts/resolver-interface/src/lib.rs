@@ -1,25 +1,20 @@
 #![no_std]
-use soroban_sdk::{contractclient, Env, Address, BytesN, U256, Bytes, Error};
+use soroban_sdk::{contractclient, Address, Bytes, BytesN, Env, Error, U256};
 
-use order_interface::Order;
 use escrow::Immutables as EscrowImmutables;
+use order_interface::Order;
 
 /// Interface for the sample implementation of a Resolver contract for cross-chain swap.
 #[contractclient(name = "ResolverInterfaceClient")]
 pub trait ResolverInterface {
-
-    fn __constructor(
-        env: Env,
-        escrow_factory_address: Address,
-        order_mixin_address: Address,
-    );
+    fn __constructor(env: Env, escrow_factory_address: Address, order_mixin_address: Address);
 
     fn get_escrow_factory_address(env: Env) -> Address;
 
     fn get_order_mixin_address(env: Env) -> Address;
 
-     /// Deploys a new escrow contract for maker on the source chain
-    /// 
+    /// Deploys a new escrow contract for maker on the source chain
+    ///
     /// # Arguments
     /// * `immutables` - The immutables of the escrow contract used in deployment
     /// * `order` - Order quote to fill
@@ -40,7 +35,7 @@ pub trait ResolverInterface {
     ) -> Result<Address, Error>; // original function does not and external return
 
     /// Deploys a new escrow contract for taker on the destination chain
-    /// 
+    ///
     /// # Arguments
     /// * `dst_immutables` - The immutables of the escrow contract used in deployment
     /// * `src_cancellation_timestamp` - The start of the cancellation period for the source chain

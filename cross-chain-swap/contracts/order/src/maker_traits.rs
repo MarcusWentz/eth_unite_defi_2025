@@ -30,12 +30,14 @@ impl ConstTrait for MakerTraitsLib {}
 impl MakerTraitsLib {
     /// Checks if the order has the extension flag set.
     /// If the `HAS_EXTENSION_FLAG` is set in the maker_traits, then the protocol expects that the order has extension(s).
-    pub fn has_extension(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(env.clone(), maker_traits, Self::has_extension_flag(env))
+    fn has_extension(env: Env, maker_traits: U256) -> bool {
+        u256_bitwise_and(&env, &maker_traits, &Self::has_extension_flag(env.clone()))
+            .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker allows a specific taker to fill the order.
-    pub fn is_allowed_sender(env: &Env, maker_traits: U256, sender: Address) -> bool {
+    fn is_allowed_sender(env: Env, maker_traits: U256, sender: Address) -> bool {
+      
         let allowed_sender_bits = Self::extract_low_bits(env.clone(), maker_traits, 0, 80);
 
         if allowed_sender_bits == 0 {
@@ -65,7 +67,7 @@ impl MakerTraitsLib {
     }
 
     /// Checks if the order has expired.
-    pub fn is_expired(env: &Env, maker_traits: &U256) -> bool {
+    fn is_expired(env: Env, maker_traits: U256) -> bool {
         let expiration =
             Self::extract_low_bits(env.clone(), maker_traits, Self::EXPIRATION_OFFSET, 40);
 
@@ -78,80 +80,92 @@ impl MakerTraitsLib {
     }
 
     /// Returns the nonce or epoch of the order.
-    pub fn nonce_or_epoch(env: Env, maker_traits: U256) -> u64 {
+    fn nonce_or_epoch(env: Env, maker_traits: U256) -> u64 {
         Self::extract_low_bits(env, maker_traits, Self::NONCE_OR_EPOCH_OFFSET, 40)
     }
 
     /// Returns the series of the order.
-    pub fn series(env: Env, maker_traits: U256) -> u64 {
+    fn series(env: Env, maker_traits: U256) -> u64 {
         Self::extract_low_bits(env, maker_traits, Self::SERIES_OFFSET, 40)
     }
 
     /// Determines if the order allows partial fills.
     /// If the NO_PARTIAL_FILLS_FLAG is not set in the maker_traits, then the order allows partial fills.
-    pub fn allow_partial_fills(env: Env, maker_traits: U256) -> bool {
-        !Self::check_flag(env.clone(), maker_traits, Self::no_partial_fills_flag(env))
+    fn allow_partial_fills(env: Env, maker_traits: U256) -> bool {
+        !u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::no_partial_fills_flag(env.clone()),
+        )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs pre-interaction call.
-    pub fn need_pre_interaction_call(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(
-            env.clone(),
-            maker_traits,
-            Self::pre_interaction_call_flag(env),
+    fn need_pre_interaction_call(env: Env, maker_traits: U256) -> bool {
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::pre_interaction_call_flag(env.clone()),
         )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs post-interaction call.
-    pub fn need_post_interaction_call(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(
-            env.clone(),
-            maker_traits,
-            Self::post_interaction_call_flag(env),
+    fn need_post_interaction_call(env: Env, maker_traits: U256) -> bool {
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::post_interaction_call_flag(env.clone()),
         )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Determines if the order allows multiple fills.
     /// If the ALLOW_MULTIPLE_FILLS_FLAG is set in the maker_traits, then the maker allows multiple fills.
-    pub fn allow_multiple_fills(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(
-            env.clone(),
-            maker_traits,
-            Self::allow_multiple_fills_flag(env),
+    fn allow_multiple_fills(env: Env, maker_traits: U256) -> bool {
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::allow_multiple_fills_flag(env.clone()),
         )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Determines if an order should use the bit invalidator or remaining amount validator.
     /// The bit invalidator can be used if the order does not allow partial or multiple fills.
-    pub fn use_bit_invalidator(env: Env, maker_traits: U256) -> bool {
+    fn use_bit_invalidator(env: Env, maker_traits: U256) -> bool {
         !Self::allow_partial_fills(env.clone(), maker_traits.clone())
             || !Self::allow_multiple_fills(env.clone(), maker_traits)
     }
 
     /// Checks if the maker needs to check the epoch.
-    pub fn need_check_epoch_manager(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(
-            env.clone(),
-            maker_traits,
-            Self::need_check_epoch_manager_flag(env),
+    fn need_check_epoch_manager(env: Env, maker_traits: U256) -> bool {
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::need_check_epoch_manager_flag(env.clone()),
         )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker uses permit2.
-    pub fn use_permit2(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(env.clone(), maker_traits, Self::use_permit2_maker_flag(env))
+    fn use_permit2(env: Env, maker_traits: U256) -> bool {
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::use_permit2_maker_flag(env.clone()),
+        )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs to unwrap WETH.
-    pub fn unwrap_weth(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(env.clone(), maker_traits, Self::unwrap_weth_maker_flag(env))
-    }
-
-    // Helper function to check if a specific bit flag is set
-    fn check_flag(env: Env, maker_traits: U256, bit_position: U256) -> bool {
-        // Create a mask with the bit set at the specified position
-        let mask = U256::from_u32(&env, 1).shl(bit_position.to_u128().unwrap() as u32);
-        u256_bitwise_and(&env, &maker_traits, &mask) != U256::from_u32(&env, 0)
+    fn unwrap_weth(env: Env, maker_traits: U256) -> bool {
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::unwrap_weth_maker_flag(env.clone()),
+        )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     // Helper function to extract bits from the lower part of the U256
