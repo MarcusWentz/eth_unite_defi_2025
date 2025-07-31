@@ -31,7 +31,8 @@ impl MakerTraitsLib {
     /// Checks if the order has the extension flag set.
     /// If the `HAS_EXTENSION_FLAG` is set in the maker_traits, then the protocol expects that the order has extension(s).
     fn has_extension(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(env.clone(), maker_traits, Self::has_extension_flag(env))
+        u256_bitwise_and(&env, &maker_traits, &Self::has_extension_flag(env.clone()))
+            .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker allows a specific taker to fill the order.
@@ -90,35 +91,43 @@ impl MakerTraitsLib {
     /// Determines if the order allows partial fills.
     /// If the NO_PARTIAL_FILLS_FLAG is not set in the maker_traits, then the order allows partial fills.
     fn allow_partial_fills(env: Env, maker_traits: U256) -> bool {
-        !Self::check_flag(env.clone(), maker_traits, Self::no_partial_fills_flag(env))
+        !u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::no_partial_fills_flag(env.clone()),
+        )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs pre-interaction call.
     fn need_pre_interaction_call(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(
-            env.clone(),
-            maker_traits,
-            Self::pre_interaction_call_flag(env),
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::pre_interaction_call_flag(env.clone()),
         )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs post-interaction call.
     fn need_post_interaction_call(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(
-            env.clone(),
-            maker_traits,
-            Self::post_interaction_call_flag(env),
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::post_interaction_call_flag(env.clone()),
         )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Determines if the order allows multiple fills.
     /// If the ALLOW_MULTIPLE_FILLS_FLAG is set in the maker_traits, then the maker allows multiple fills.
     fn allow_multiple_fills(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(
-            env.clone(),
-            maker_traits,
-            Self::allow_multiple_fills_flag(env),
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::allow_multiple_fills_flag(env.clone()),
         )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Determines if an order should use the bit invalidator or remaining amount validator.
@@ -130,21 +139,32 @@ impl MakerTraitsLib {
 
     /// Checks if the maker needs to check the epoch.
     fn need_check_epoch_manager(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(
-            env.clone(),
-            maker_traits,
-            Self::need_check_epoch_manager_flag(env),
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::need_check_epoch_manager_flag(env.clone()),
         )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker uses permit2.
     fn use_permit2(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(env.clone(), maker_traits, Self::use_permit2_maker_flag(env))
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::use_permit2_maker_flag(env.clone()),
+        )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs to unwrap WETH.
     fn unwrap_weth(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(env.clone(), maker_traits, Self::unwrap_weth_maker_flag(env))
+        u256_bitwise_and(
+            &env,
+            &maker_traits,
+            &Self::unwrap_weth_maker_flag(env.clone()),
+        )
+        .ne(&U256::from_u32(&env, 0))
     }
 
     // Helper function to extract bits from the lower part of the U256

@@ -4,7 +4,8 @@ use escrow::Immutables;
 use order_interface::Order;
 use resolver_interface::ResolverInterface;
 use soroban_sdk::{
-    contract, contractimpl, symbol_short, vec, Address, Bytes, BytesN, Env, Error, IntoVal, Symbol, U256,
+    contract, contractimpl, symbol_short, vec, Address, Bytes, BytesN, Env, Error, IntoVal, Symbol,
+    U256,
 };
 
 #[contract]
@@ -55,12 +56,16 @@ impl ResolverInterface for ResolverContract {
     ) -> Result<Address, Error> {
         // create_dst_escrow(&env, dst_immutables, src_cancellation_timestamp)
         let escrow_factory_address = Self::get_escrow_factory_address(env.clone());
-        
+
         // Call the escrow factory contract to create the destination escrow
         env.invoke_contract(
             &escrow_factory_address,
             &Symbol::new(&env, "create_dst_escrow"),
-            vec![&env, dst_immutables.into_val(&env), src_cancellation_timestamp.into_val(&env)],
+            vec![
+                &env,
+                dst_immutables.into_val(&env),
+                src_cancellation_timestamp.into_val(&env),
+            ],
         )
     }
 }
