@@ -1,6 +1,9 @@
 use soroban_sdk::{contract, contractimpl, xdr::ToXdr, Address, Env, U256};
 
-use crate::consts_trait::{u256_bitwise_and, ConstTrait};
+use crate::{
+    consts_trait::{u256_bitwise_and, ConstTrait},
+    taker_traits,
+};
 
 /// TakerTraitsLib equivalent for Soroban
 ///
@@ -28,21 +31,53 @@ impl ConstTrait for TakerTraitsLib {}
 
 #[contractimpl]
 impl TakerTraitsLib {
-    // Helper function to check if a specific bit flag is set
-    fn check_flag(env: Env, taker_traits: U256, bit_position: U256) -> bool {
-        // Create a mask with the bit set at the specified position
-        let mask = U256::from_u32(&env, 1).shl(bit_position.to_u128().unwrap() as u32);
-        u256_bitwise_and(&env, &taker_traits, &mask) != U256::from_u32(&env, 0)
+    fn args_has_target(env: Env, taker_traits: U256) -> bool {
+        u256_bitwise_and(
+            &env,
+            &taker_traits,
+            &Self::args_has_target_const(env.clone()),
+        )
+        .ne(&U256::from_u32(&env, 0))
+    }
+
+    fn args_extension_length(env: Env, taker_traits: U256) -> U256 {
+        u256_bitwise_and(
+            &env,
+            &taker_traits.shr(Self::ARGS_EXTENSION_LENGTH_OFFSET),
+            &U256::from_u32(&env, Self::ARGS_EXTENSION_LENGTH_MASK),
+        )
+    }
+
+    fn args_interaction_length(env: Env, taker_traits: U256) -> U256 {
+        u256_bitwise_and(
+            &env,
+            &taker_traits.shr(Self::ARGS_INTERACTION_LENGTH_OFFSET),
+            &U256::from_u32(&env, Self::ARGS_INTERACTION_LENGTH_MASK),
+        )
     }
 
     /// Checks if the taker uses permit2.
-    pub fn use_permit2(env: Env, taker_traits: U256) -> bool {
+    fn is_making_amount(env: Env, taker_traits: U256) -> bool {
+        Self::check_flag(env.clone(), taker_traits, Self::maker_amount_flag(env))
+    }
+
+    /// Checks if the taker uses permit2.
+    fn skip_maker_permit(env: Env, taker_traits: U256) -> bool {
+        Self::check_flag(env.clone(), taker_traits, Self::skip_order_permit_flag(env))
+    }
+
+    /// Checks if the taker uses permit2.
+    fn use_permit2(env: Env, taker_traits: U256) -> bool {
         Self::check_flag(env.clone(), taker_traits, Self::use_permit2_taker_flag(env))
     }
 
     /// Checks if the taker needs to unwrap WETH.
-    pub fn unwrap_weth(env: Env, maker_traits: U256) -> bool {
-        Self::check_flag(env.clone(), maker_traits, Self::unwrap_weth_maker_flag(env))
+    fn unwrap_weth(env: Env, taker_traits: U256) -> bool {
+        Self::check_flag(env.clone(), taker_traits, Self::unwrap_weth_taker_flag(env))
+    }
+
+    fn treshold(env: Env, taker_traits: U256) -> U256 {
+        u256_bitwise_and(&env, &taker_traits, &Self::amount_mask(env.clone()))
     }
 }
 

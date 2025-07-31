@@ -1,11 +1,15 @@
-use soroban_sdk::{contract, Address, Env, U256};
+use soroban_sdk::{contract, Address, Bytes, Env, U256};
 
 pub trait ConstTrait {
     const EXPIRATION_OFFSET: u32 = 80;
     const NONCE_OR_EPOCH_OFFSET: u32 = 120;
     const SERIES_OFFSET: u32 = 160;
     const ARGS_EXTENSION_LENGTH_OFFSET: u32 = 224;
+    const ARGS_EXTENSION_LENGTH_MASK: u32 = 0xffffff;
     const ARGS_INTERACTION_LENGTH_OFFSET: u32 = 200;
+    const ARGS_INTERACTION_LENGTH_MASK: u32 = 0xffffff;
+
+    // Funcs replacing consts
 
     fn allowed_sender_mask(env: Env) -> U256 {
         U256::from_u32(&env, 1)
@@ -79,8 +83,29 @@ pub trait ConstTrait {
         U256::from_u32(&env, 1).shl(252)
     }
 
-    fn args_has_target(env: Env) -> U256 {
+    fn args_has_target_const(env: Env) -> U256 {
         U256::from_u32(&env, 1).shl(251)
+    }
+
+    fn amount_mask(env: Env) -> U256 {
+        // 0x000000000000000000ffffffffffffffffffffffffffffffffffffffffffffff
+        let bytes = Bytes::from_array(
+            &env,
+            &[
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+            ],
+        );
+        U256::from_be_bytes(&env, &bytes)
+    }
+
+    // Funcs shared
+
+    // Helper function to check if a specific bit flag is set
+    fn check_flag(env: Env, taker_traits: U256, bit_position: U256) -> bool {
+        // Create a mask with the bit set at the specified position
+        let mask = U256::from_u32(&env, 1).shl(bit_position.to_u128().unwrap() as u32);
+        u256_bitwise_and(&env, &taker_traits, &mask) != U256::from_u32(&env, 0)
     }
 }
 
