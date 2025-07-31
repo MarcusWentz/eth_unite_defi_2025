@@ -3,8 +3,10 @@ use soroban_sdk::{
     Env, Symbol, U256,
 };
 
-use super::timelocks::{Stage, Timelocks};
-use escrow::Immutables;
+use super::{
+    Immutables,
+    timelocks::{Stage, Timelocks},
+};
 
 // CONTRACTS
 

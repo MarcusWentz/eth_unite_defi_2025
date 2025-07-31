@@ -37,6 +37,7 @@ impl MakerTraitsLib {
 
     /// Checks if the maker allows a specific taker to fill the order.
     fn is_allowed_sender(env: Env, maker_traits: U256, sender: Address) -> bool {
+      
         let allowed_sender_bits = Self::extract_low_bits(env.clone(), maker_traits, 0, 80);
 
         if allowed_sender_bits == 0 {
@@ -168,7 +169,7 @@ impl MakerTraitsLib {
     }
 
     // Helper function to extract bits from the lower part of the U256
-    fn extract_low_bits(env: Env, maker_traits: U256, offset: u32, num_bits: u32) -> u64 {
+    fn extract_low_bits(env: Env, maker_traits: &U256, offset: u32, num_bits: u32) -> u64 {
         // Right shift to get the bits we want
         let shifted = maker_traits.shr(offset);
 

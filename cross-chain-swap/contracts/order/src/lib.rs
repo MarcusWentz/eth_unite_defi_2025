@@ -1,25 +1,65 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, vec, Address, Env, String, Vec, U256};
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Bytes, BytesN, Env, U256};
+use crate::maker_traits::MakerTraitsLib;
 pub mod consts_trait;
 pub mod maker_traits;
 pub mod taker_traits;
+pub mod dutch_auction;
 
 #[contract]
-pub struct Contract;
+pub struct OrderProtocol;
 
-// This is a sample contract. Replace this placeholder with your own contract logic.
-// A corresponding test example is available in `test.rs`.
-//
-// For comprehensive examples, visit <https://github.com/stellar/soroban-examples>.
-// The repository includes use cases for the Stellar ecosystem, such as data storage on
-// the blockchain, token swaps, liquidity pools, and more.
-//
-// Refer to the official documentation:
-// <https://developers.stellar.org/docs/build/smart-contracts/overview>.
 #[contractimpl]
-impl Contract {
-    pub fn hello(env: Env, to: String) -> Vec<String> {
-        vec![&env, String::from_str(&env, "Hello"), to]
+impl OrderProtocol {
+
+    fn calculate_making_amount(
+        env: Env,
+        making_amount: U256, // Math.min(amount, remainingMakingAmount)
+    ) -> U256 {
+        return U256::from_u32(&env, 0);
+    }
+
+    fn fill(
+        env: Env,
+        order: Order,
+        order_hash: BytesN<32>,
+        remaining_making_amount: U256,
+        amount: U256,
+        taker_traits: U256,
+        target: Address,
+        _extension: Bytes,
+        _interaction: Bytes,
+    ) {
+        // ignoring _extension validation phase.
+
+        if !MakerTraitsLib::is_allowed_sender(&env, order.maker_traits, target) {
+            panic!("Private order");
+        }
+
+        if MakerTraitsLib::is_expired(&env, &order.maker_traits) {
+            panic!("Order expired");
+        }
+
+        if MakerTraitsLib::need_check_epoch_manager(env, order.maker_traits) {
+            if MakerTraitsLib::use_bit_invalidator(env, order.maker_traits) {
+                panic!("Epoch manager and bit invalidators are incompatible");
+            }
+            // todo: @Skanislav implement check:
+            // if (!epochEquals(order.maker.get(), order.makerTraits.series(), order.makerTraits.nonceOrEpoch())) revert WrongSeriesNonce();
+        }
+
+        // ignoring extension predicate check.
+
+        // Checks if the taking amount should be calculated based on making amount.
+        let is_making_amount = true; // takerTraits.isMakingAmount
+        if (is_making_amount) {
+            let taking_amount = Self::calculate_making_amount(
+                env,
+                U256::min(order.making_amount, remaining_making_amount),
+            );
+        };
+
+
     }
 }
 
