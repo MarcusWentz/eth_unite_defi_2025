@@ -2,6 +2,7 @@
 
 # Load environment and configuration
 source .env
+source scripts/utils.sh
 source scripts/evm_utils.sh
 source scripts/stellar_utils.sh
 source scripts/run_stages.sh
@@ -36,6 +37,7 @@ SRC_AMOUNT=$(jq -r '.srcAmount' "$CONFIG_PATH")
 DST_AMOUNT=$(jq -r '.dstAmount' "$CONFIG_PATH")
 SAFETY_DEPOSIT=$(jq -r '.safetyDeposit' "$CONFIG_PATH")
 TIME_DELTA=5
+MAKER_ADDR=$(jq -r '.maker' "$CONFIG_PATH")
 
 main() {
   echo -n "Do you want to rebuild project? Otherwise it will rebuild automatically if necessary [y/n]: "
@@ -49,6 +51,9 @@ main() {
   stellar_check_dependencies
   # evm_start
   stellar_setup_keypair
+
+  #Setup secret
+  derive_secret_and_hashlock
 
   # Build and deploy Stellar contract factory
   stellar_deploy_escrow_factory
