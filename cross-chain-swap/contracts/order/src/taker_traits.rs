@@ -39,6 +39,12 @@ impl TakerTraitsLib {
     pub fn use_permit2(env: Env, taker_traits: U256) -> bool {
         Self::check_flag(env.clone(), taker_traits, Self::use_permit2_taker_flag(env))
     }
+
+    /// Checks if the taker needs to unwrap WETH.
+    pub fn unwrap_weth(env: Env, maker_traits: U256) -> bool {
+        Self::check_flag(env.clone(), maker_traits, Self::unwrap_weth_maker_flag(env))
+    }
+
 }
 
 // Builder pattern for constructing TakerTraits
