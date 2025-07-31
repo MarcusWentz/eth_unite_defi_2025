@@ -35,7 +35,7 @@ impl MakerTraitsLib {
     }
 
     /// Checks if the maker allows a specific taker to fill the order.
-    pub fn is_allowed_sender(env: Env, maker_traits: U256, sender: Address) -> bool {
+    pub fn is_allowed_sender(env: &Env, maker_traits: U256, sender: Address) -> bool {
         let allowed_sender_bits = Self::extract_low_bits(env.clone(), maker_traits, 0, 80);
 
         if allowed_sender_bits == 0 {
@@ -65,7 +65,7 @@ impl MakerTraitsLib {
     }
 
     /// Checks if the order has expired.
-    pub fn is_expired(env: Env, maker_traits: U256) -> bool {
+    pub fn is_expired(env: &Env, maker_traits: &U256) -> bool {
         let expiration =
             Self::extract_low_bits(env.clone(), maker_traits, Self::EXPIRATION_OFFSET, 40);
 
@@ -155,7 +155,7 @@ impl MakerTraitsLib {
     }
 
     // Helper function to extract bits from the lower part of the U256
-    fn extract_low_bits(env: Env, maker_traits: U256, offset: u32, num_bits: u32) -> u64 {
+    fn extract_low_bits(env: Env, maker_traits: &U256, offset: u32, num_bits: u32) -> u64 {
         // Right shift to get the bits we want
         let shifted = maker_traits.shr(offset);
 

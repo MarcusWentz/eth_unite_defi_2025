@@ -13,6 +13,7 @@ soroban-sdk = { workspace = true }
 resolver-interface = { workspace = true }
 order-interface = { workspace = true }
 escrow = { path = "../escrow" }
+order = { path = "../order" }
 cross-chain-swap = { path = "../cross-chain-swap" }
 
 [dev-dependencies]

@@ -1,10 +1,14 @@
 #![no_std]
 
-use escrow::Immutables;
+use escrow::{
+    Immutables,
+    escrow_factory::EscrowFactory,
+    timelocks::Timelocks,
+};
 use order_interface::Order;
 use resolver_interface::ResolverInterface;
 use soroban_sdk::{
-    contract, contractimpl, symbol_short, vec, Address, Bytes, BytesN, Env, Error, IntoVal, Symbol, U256,
+    contract, contractimpl, symbol_short, vec, Address, Bytes, BytesN, Env, Error, IntoVal, Symbol, U256, log
 };
 
 #[contract]
@@ -37,7 +41,7 @@ impl ResolverInterface for ResolverContract {
 
     fn deploy_src(
         env: Env,
-        immutables: Immutables,
+        mut immutables: Immutables,
         order: Order,
         signature_r: BytesN<32>,
         signature_vs: BytesN<32>,
@@ -45,6 +49,15 @@ impl ResolverInterface for ResolverContract {
         taker_traits: U256, // Taker traits = U256
         args: Bytes,
     ) -> Result<Address, Error> {
+        let timestamp = U256::from_parts(&env, env.ledger().timestamp(), 0, 0, 0);
+        // either we change set_deployed_at to accept pointer to env or we pass env.clone()
+        immutables.timelocks = Timelocks::set_deployed_at(env.clone(), immutables.timelocks, timestamp);
+
+        log!(&env, "immutables: {:?}", immutables);
+        let address = EscrowFactory::address_of_escrow_src(&env, immutables);
+
+        log!(&env, "address: {:?}", address);
+
         Ok(Address::from_str(&env, ""))
     }
 
@@ -64,3 +77,6 @@ impl ResolverInterface for ResolverContract {
         )
     }
 }
+
+
+mod test;
