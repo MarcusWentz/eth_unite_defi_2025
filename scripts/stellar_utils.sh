@@ -61,10 +61,9 @@ stellar_deploy_escrow_factory() {
 }
 
 deployEscrowDstStellar() {
-  echo "Invoking 'create_dst_escrow' function..."
+  export RUST_BACKTRACE=1
 
-  # Maker is private key deploying everything
-  # Taker is the address of the swap funder
+  echo "Invoking 'create_dst_escrow' function..."
 
   echo "---- ID: ${CONTRACT_ID} ----"
   echo "---- STELLAR_IDENTITY_NAME: ${STELLAR_IDENTITY_NAME} ----"
@@ -75,16 +74,18 @@ deployEscrowDstStellar() {
   --network testnet \
   -- \
   create_dst_escrow \
-    --dst_immutables '{
-    "order_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    "hashlock": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    "maker": "{PUBLIC_KEY},
-    "taker": {"PUBLIC_KEY}", 
-    "token": "${DST_TOKEN}",
-    "amount": "${DST_AMOUNT}",
-    "safety_deposit": "${SAFETY_DEPOSIT}",
-    "timelocks": "encoded_timelocks_value"
-    }' \
+    --dst_immutables "{
+    'order_hash': '091eae8c4f0d591a218d306dd268c8afc34f0d4e7e47e586727eedafd5b3eace',
+    'hashlock': '${HASHLOCK}',
+    'maker': '${MAKER_ADDR}',
+    'taker': '${PUBLIC_KEY}', 
+    'token': '${DST_TOKEN}',
+    'amount': '${DST_AMOUNT}',
+    'safety_deposit': '${SAFETY_DEPOSIT}',
+    'timelocks': '47060477689451080397812265084919941810737379146180464814593056046548405715244'
+    }" \
+    --src_cancellaqtion_timestamp "1735776000"
+    # 'taker': '${PUBLIC_KEY}', 
   )
 
   echo "Invoke result: ${INVOKE_RESULT}"
