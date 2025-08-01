@@ -21,12 +21,6 @@ pub struct TakerTraitsLib;
 
 impl ConstTrait for TakerTraitsLib {}
 
-// Builder pattern for constructing TakerTraits
-pub struct TakerTraitsBuilder {
-    traits: U256,
-    env: Env,
-}
-
 impl TakerTraitsLib {
     /// Checks if the args should contain target address.
     fn args_has_target(env: &Env, taker_traits: U256) -> bool {
@@ -63,7 +57,7 @@ impl TakerTraitsLib {
     }
 
     /// Checks if the order should unwrap WETH and send ETH to taker.
-    fn unwrap_weth(env: &Env, taker_traits: U256) -> bool {
+    pub fn unwrap_weth(env: &Env, taker_traits: U256) -> bool {
         u256_bitwise_and(
             &env,
             &taker_traits,
@@ -96,5 +90,107 @@ impl TakerTraitsLib {
     /// The maximum amount a taker agrees to give in exchange for a making amount.
     pub fn threshold(env: &Env, taker_traits: U256) -> U256 {
         bitand(&env, taker_traits, Self::amount_mask(env))
+    }
+}
+
+// Builder pattern for constructing TakerTraits
+pub struct TakerTraitsBuilder {
+    traits: U256,
+    env: Env,
+}
+
+impl TakerTraitsBuilder {
+    pub fn new(env: Env) -> Self {
+        Self {
+            traits: U256::from_u32(&env, 0),
+            env,
+        }
+    }
+
+    pub fn with_allowed_sender(mut self, sender_bits: u128) -> Self {
+        let sender_u256 = U256::from_u128(&self.env, sender_bits);
+        let mask = TakerTraitsLib::allowed_sender_mask(self.env.clone());
+        let masked_sender = bitand(&self.env, sender_u256, mask);
+        self.traits = self.traits.add(&masked_sender);
+        self
+    }
+
+    pub fn with_expiration(mut self, expiration: u64) -> Self {
+        let expiration_u256 = U256::from_u128(&self.env, expiration as u128);
+        let mask = TakerTraitsLib::expiration_mask(self.env.clone());
+        let masked_expiration = bitand(&self.env, expiration_u256, mask);
+        let shifted = masked_expiration.shl(TakerTraitsLib::EXPIRATION_OFFSET);
+        self.traits = self.traits.add(&shifted);
+        self
+    }
+
+    pub fn with_nonce_or_epoch(mut self, nonce_or_epoch: u64) -> Self {
+        let nonce_u256 = U256::from_u128(&self.env, nonce_or_epoch as u128);
+        let mask = TakerTraitsLib::nonce_or_epoch_mask(self.env.clone());
+        let masked_nonce = bitand(&self.env, nonce_u256, mask);
+        let shifted = masked_nonce.shl(TakerTraitsLib::NONCE_OR_EPOCH_OFFSET);
+        self.traits = self.traits.add(&shifted);
+        self
+    }
+
+    pub fn with_series(mut self, series: u64) -> Self {
+        let series_u256 = U256::from_u128(&self.env, series as u128);
+        let mask = TakerTraitsLib::series_mask(self.env.clone());
+        let masked_series = bitand(&self.env, series_u256, mask);
+        let shifted = masked_series.shl(TakerTraitsLib::SERIES_OFFSET);
+        self.traits = self.traits.add(&shifted);
+        self
+    }
+
+    pub fn no_partial_fills(mut self) -> Self {
+        let flag = TakerTraitsLib::no_partial_fills_flag(self.env.clone());
+        self.traits = self.traits.add(&flag);
+        self
+    }
+
+    pub fn allow_multiple_fills(mut self) -> Self {
+        let flag = TakerTraitsLib::allow_multiple_fills_flag(self.env.clone());
+        self.traits = self.traits.add(&flag);
+        self
+    }
+
+    pub fn with_pre_interaction_call(mut self) -> Self {
+        let flag = TakerTraitsLib::pre_interaction_call_flag(self.env.clone());
+        self.traits = self.traits.add(&flag);
+        self
+    }
+
+    pub fn with_post_interaction_call(mut self) -> Self {
+        let flag = TakerTraitsLib::post_interaction_call_flag(self.env.clone());
+        self.traits = self.traits.add(&flag);
+        self
+    }
+
+    pub fn need_check_epoch_manager(mut self) -> Self {
+        let flag = TakerTraitsLib::need_check_epoch_manager_flag(self.env.clone());
+        self.traits = self.traits.add(&flag);
+        self
+    }
+
+    pub fn with_extension(mut self) -> Self {
+        let flag = TakerTraitsLib::has_extension_flag(self.env.clone());
+        self.traits = self.traits.add(&flag);
+        self
+    }
+
+    pub fn use_permit2(mut self) -> Self {
+        let flag = TakerTraitsLib::use_permit2_maker_flag(self.env.clone());
+        self.traits = self.traits.add(&flag);
+        self
+    }
+
+    pub fn unwrap_weth(mut self) -> Self {
+        let flag = TakerTraitsLib::unwrap_weth_maker_flag(self.env.clone());
+        self.traits = self.traits.add(&flag);
+        self
+    }
+
+    pub fn build(self) -> U256 {
+        self.traits
     }
 }
