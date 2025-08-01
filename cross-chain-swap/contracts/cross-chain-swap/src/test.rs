@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 // use super::*;
-use crate::escrow_factory::timelocks::{Stage, Timelocks, TimelocksClient};
+use escrow::timelocks::{Stage, Timelocks, TimelocksClient};
 use crate::merkle_storage_invalidator::{
     commutative_keccak256, concat_bytes, process_proof, MerkleProof,
     MerkleStorageInvalidatorContract, MerkleStorageInvalidatorContractClient, TakerData,
