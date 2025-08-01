@@ -14,7 +14,7 @@ dutch-auction = { path = "contracts/dutch-auction" }
 escrow = { path = "contracts/escrow" }
 dutch-auction-interface = { path = "contracts/dutch-auction-interface" }
 utils = { path = "utils" }
-cross-chain-swap = { path = "contracts/cross-chain-swap" }
+merkle-storage = { path = "contracts/merkle-storage" }
 
 
 [profile.release]

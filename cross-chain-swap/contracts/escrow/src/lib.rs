@@ -20,3 +20,5 @@ pub mod timelocks;
 
 #[cfg(test)]
 mod test_escrow_factory;
+mod test_timelock;
+

@@ -1,8 +1,7 @@
 #![no_std]
 
-// pub mod escrow_factory;
-pub mod escrows;
 pub mod merkle_storage_invalidator;
+pub mod merkle_proof;
 
 #[cfg(test)]
 mod test;
