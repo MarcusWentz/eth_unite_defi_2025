@@ -15,12 +15,17 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 DOCKER_IMAGE="stellar/quickstart:latest"
-STELLAR_PROJECT_DIR="stellar"
-SOROBAN_PACKAGE_NAME="hello_world" # Matches directory name
-SOROBAN_WASM_NAME="hello_world"     # Matches build output name
+STELLAR_PROJECT_DIR=".stellar"
+SOROBAN_PACKAGE_NAME="order" # Matches directory name
+SOROBAN_WASM_NAME="order"     # Matches build output name
+SOROBAN_DA_NAME="dutch-auction"
+SOROBAN_DA_WASM_NAME="dutch_auction"
 STELLAR_IDENTITY_NAME="my-deployer"
 DOCKER_CONTAINER_NAME="stellar"
 EVM_PROJECT_DIR="packages/1inch-ref"
+
+ALICE_IDENTITY_NAME="alice"
+BOB_IDENTITY_NAME="bob"
 
 # --- Helper Functions ---
 step() { echo -e "\n${YELLOW}STEP: $1${NC}"; }
@@ -32,13 +37,12 @@ fail() {
   echo -e "${YELLOW}To stop the container, run: docker stop ${DOCKER_CONTAINER_NAME}${NC}"
   exit 1
 }
-
 # --- Main Logic ---
 
-# Perform a full reset first to guarantee a clean slate
 step "Performing clean reset of environment..."
 docker stop ${DOCKER_CONTAINER_NAME} > /dev/null 2>&1
-# Delete ALL known key storage locations
+docker rm ${DOCKER_CONTAINER_NAME} > /dev/null 2>&1
+Delete ALL known key storage locations
 rm -rf ~/.config/stellar
 rm -rf ./.stellar
 rm -rf ${STELLAR_PROJECT_DIR}/.config
@@ -61,7 +65,7 @@ docker run -d --rm \
   --enable-soroban-rpc > /dev/null || fail "Failed to start Docker container."
 
 echo "Waiting for the network to initialize..."
-sleep 45
+sleep 40
 until curl -s -f -o /dev/null http://localhost:8000/; do
   echo -n "."
   sleep 2
@@ -96,25 +100,47 @@ else
   success "Account is already funded."
 fi
 
-# 4. Build and Deploy
-step "Building and deploying '${SOROBAN_PACKAGE_NAME}' contract..."
-echo "Building contract Wasm..."
-cargo build --manifest-path ./${STELLAR_PROJECT_DIR}/contracts/${SOROBAN_PACKAGE_NAME}/Cargo.toml --target wasm32-unknown-unknown --release || fail "Cargo build failed."
-WASM_PATH="./${STELLAR_PROJECT_DIR}/target/wasm32-unknown-unknown/release/${SOROBAN_WASM_NAME}.wasm"
+cd cross-chain-swap
 
-# ** CORRECTED SYNTAX: Use --network local **
-echo "Uploading Wasm..."
-WASM_HASH=$(stellar contract upload --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local)
-[ -z "$WASM_HASH" ] && fail "Failed to upload Wasm."
-success "Wasm uploaded. Hash: ${WASM_HASH}"
+step "Building contracts..."
+
+stellar contract build || fail "Cargo build failed."
+DA_WASM_PATH="./target/wasm32v1-none/release/${SOROBAN_DA_WASM_NAME}.wasm"
+
+# 4. Build and Deploy
+step "[1] Building and deploying '${SOROBAN_DA_NAME}' contract..."
+echo "Building contract Wasm..."
+
+DA_CONTRACT_ID=$(stellar contract deploy --wasm ${DA_WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local --alias ${SOROBAN_DA_NAME})
+[ -z "$DA_CONTRACT_ID" ] && fail "Failed to deploy contract."
+success "Contract deployed! ID: ${DA_CONTRACT_ID}"
+
+# 4. Build and Deploy
+step "[2] Building and deploying '${SOROBAN_PACKAGE_NAME}' contract..."
+echo "Building contract Wasm..."
+
+WASM_PATH="./target/wasm32v1-none/release/${SOROBAN_WASM_NAME}.wasm"
 
 echo "Deploying contract instance..."
-CONTRACT_ID=$(stellar contract deploy --wasm-hash "${WASM_HASH}" --source-account ${STELLAR_IDENTITY_NAME} --network local)
+CONTRACT_ID=$(stellar contract deploy --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local --alias ${SOROBAN_PACKAGE_NAME} -- --da_addy ${DA_CONTRACT_ID})
 [ -z "$CONTRACT_ID" ] && fail "Failed to deploy contract."
 success "Contract deployed! ID: ${CONTRACT_ID}"
 
-echo "Invoking 'hello' function..."
-INVOKE_RESULT=$(stellar contract invoke --id "${CONTRACT_ID}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- hello --to "Automated Deploy")
+stellar keys generate ${ALICE_IDENTITY_NAME} > /dev/null
+ALICE_PUBLIC_KEY=$(stellar keys address ${ALICE_IDENTITY_NAME})
+stellar keys generate ${BOB_IDENTITY_NAME} > /dev/null
+BOB_PUBLIC_KEY=$(stellar keys address ${BOB_IDENTITY_NAME})
+
+MAKER_ASSET="0x0000000000000000000000000000000000000000000000000000000000000000"
+TAKER_ASSET="0x0000000000000000000000000000000000000000000000000000000000000000"
+
+MAKER_TRAITS="967101221531144175919556390646195146547200"
+
+echo "Deploying contract instance..."
+ORDER="--order '{ ${SALT} \"${ALICE_PUBLIC_KEY}\", \"receiver\": \"${BOB_PUBLIC_KEY}\", \"maker_asset\": \"${MAKER_ASSET}\", \"taker_asset\": \"${TAKER_ASSET}\", \"maker_amount\": 1000000000000000000, \"taker_amount\": 1000000000000000000, \"salt\": ${SALT}, \"maker_traits\": \"${MAKER_TRAITS}\" }'"
+
+echo "Invoking 'calculate_making_amount' function..."
+INVOKE_RESULT=$(stellar contract invoke --id "${CONTRACT_ID}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- calculate_making_amount ${ORDER})
 success "Invoke result: ${INVOKE_RESULT}"
 
 # 5. EVM Stages
