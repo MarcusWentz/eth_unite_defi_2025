@@ -1,19 +1,13 @@
 #![cfg(test)]
 
-use soroban_sdk::{
-    testutils::{Address as _,},
-    Env, Address, BytesN, U256
-};
+use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, U256};
 
-use crate::{
-    Immutables,
-    escrow_factory::EscrowFactory,
-};
+use crate::{escrow_factory::EscrowFactory, Immutables};
 
 #[test]
 fn test_address_of_escrow_src() {
     let env = Env::default();
-    let computed_addy = "CALVAFBJBYNRFX5NU6RX46Y6YDRN3YCUXDQTYYMOHJGF3L4H2IOEE4VX";
+    let computed_addy = "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI";
     let pre_computed_address = Address::from_str(&env, computed_addy);
     let immutables = Immutables {
         order_hash: BytesN::from_array(&env, &[0; 32]),

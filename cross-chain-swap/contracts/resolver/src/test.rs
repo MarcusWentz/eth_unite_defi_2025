@@ -1,10 +1,7 @@
 #![cfg(test)]
 
-use crate::{ResolverContract, ResolverContractClient, Immutables};
-use soroban_sdk::{
-    testutils::{Address as _,},
-    Address, BytesN, Env, U256, Bytes
-};
+use crate::{Immutables, ResolverContract, ResolverContractClient};
+use soroban_sdk::{testutils::Address as _, Address, Bytes, BytesN, Env, U256};
 
 #[test]
 fn test() {
@@ -14,7 +11,10 @@ fn test() {
     let escrow_factory_address = Address::generate(&env);
     let order_mixin_address = Address::generate(&env);
 
-    let contract_id = env.register(ResolverContract, (&escrow_factory_address, &order_mixin_address));
+    let contract_id = env.register(
+        ResolverContract,
+        (&escrow_factory_address, &order_mixin_address),
+    );
     let resolver_client = ResolverContractClient::new(&env, &contract_id);
 
     // Invoke contract to check that it is initialized.
@@ -23,7 +23,6 @@ fn test() {
 
     let order_mixin_address = resolver_client.get_order_mixin_address();
     assert_eq!(order_mixin_address, order_mixin_address);
-
 }
 
 #[test]
@@ -45,7 +44,10 @@ fn test_deploy_src() {
     let escrow_factory_address = Address::generate(&env);
     let order_mixin_address = Address::generate(&env);
 
-    let contract_id = env.register(ResolverContract, (&escrow_factory_address, &order_mixin_address));
+    let contract_id = env.register(
+        ResolverContract,
+        (&escrow_factory_address, &order_mixin_address),
+    );
     let resolver_client = ResolverContractClient::new(&env, &contract_id);
 
     let immutables = Immutables {
@@ -58,5 +60,4 @@ fn test_deploy_src() {
         safety_deposit: 1000000000000000000,
         timelocks: U256::from_u32(&env, 0), // would be set inside of deploy_src
     };
-
 }

@@ -3,9 +3,9 @@ use soroban_sdk::{
     Env, Symbol, U256,
 };
 
-use super::{
-    Immutables,
+use crate::{
     timelocks::{Stage, Timelocks},
+    Immutables,
 };
 
 // CONTRACTS
@@ -77,7 +77,7 @@ impl EscrowFactory {
         }
 
         // fetching the msg.value
-        let msg_value: i128 = env
+        let msg_value: u128 = env
             .storage()
             .persistent()
             .get(&symbol_short!("value"))

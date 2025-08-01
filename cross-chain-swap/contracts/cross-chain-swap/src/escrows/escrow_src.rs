@@ -1,6 +1,8 @@
 use super::base_escrow::{BaseEscrow, Error};
-use crate::escrow_factory::timelocks::{Stage, Timelocks};
-use escrow::Immutables;
+use escrow::{
+    timelocks::{Stage, Timelocks},
+    Immutables,
+};
 use soroban_sdk::{
     contract, contractimpl, symbol_short, token::TokenClient, Address, BytesN, Env, Symbol,
 };
@@ -142,7 +144,7 @@ impl EscrowSrc {
         TokenClient::new(&env, &immutables.token).transfer(
             &env.current_contract_address(),
             &target,
-            &immutables.amount,
+            &immutables.amount.try_into().unwrap(),
         );
 
         Self::xlm_transfer(
@@ -151,7 +153,7 @@ impl EscrowSrc {
                 .persistent()
                 .get(&symbol_short!("sender"))
                 .unwrap(),
-            immutables.safety_deposit,
+            immutables.safety_deposit.try_into().unwrap(),
         );
 
         env.events()
@@ -165,7 +167,7 @@ impl EscrowSrc {
         TokenClient::new(&env, &immutables.token).transfer(
             &env.current_contract_address(),
             &immutables.maker,
-            &immutables.amount,
+            &immutables.amount.try_into().unwrap(),
         );
         Self::xlm_transfer(
             env.clone(),
@@ -173,7 +175,7 @@ impl EscrowSrc {
                 .persistent()
                 .get(&symbol_short!("sender"))
                 .unwrap(),
-            immutables.safety_deposit,
+            immutables.safety_deposit.try_into().unwrap(),
         );
 
         env.events()

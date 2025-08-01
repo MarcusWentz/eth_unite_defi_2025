@@ -2,8 +2,7 @@ use soroban_sdk::{
     contracterror, symbol_short, token::TokenClient, xdr::ToXdr, Address, BytesN, Env, Symbol, U256,
 };
 
-use crate::escrow_factory::timelocks::Timelocks;
-use escrow::Immutables;
+use escrow::{timelocks::Timelocks, Immutables};
 
 // Errors
 

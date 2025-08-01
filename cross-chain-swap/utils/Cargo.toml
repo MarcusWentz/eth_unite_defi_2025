@@ -1,5 +1,5 @@
 [package]
-name = "dutch-auction"
+name = "utils"
 version = "0.0.0"
 edition = "2021"
 publish = false
@@ -10,9 +10,6 @@ doctest = false
 
 [dependencies]
 soroban-sdk = { workspace = true }
-order-interface = { workspace = true }
-dutch-auction-interface = { workspace = true }
-utils = { workspace = true }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }

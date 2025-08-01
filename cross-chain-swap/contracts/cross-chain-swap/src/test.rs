@@ -289,10 +289,7 @@ fn test_timelock_get_return_1() {
     // // let test_return_value_256: U256 = get(&timelock_input_u256, &stage_status);
 
     // Expect to return 1 as type uin256.
-    assert_eq!(
-        test_return_value_256,
-        U256::from_u32(&env, 1)
-    );
+    assert_eq!(test_return_value_256, U256::from_u32(&env, 1));
 }
 
 #[test]
@@ -304,7 +301,8 @@ fn test_timelock_set_deployed_at_mask_value_0() {
     let timelock_input_u256: U256 = U256::from_u32(&env, 100);
     let mask_value_input_u256: U256 = U256::from_u32(&env, 0);
 
-    let test_return_value_256: U256 = client.set_deployed_at(&timelock_input_u256, &mask_value_input_u256);
+    let test_return_value_256: U256 =
+        client.set_deployed_at(&timelock_input_u256, &mask_value_input_u256);
 
     // Expect to return 100 as type uint256.
     assert_eq!(test_return_value_256, U256::from_u32(&env, 100));
@@ -334,10 +332,9 @@ fn test_timelock_set_deployed_at_mask_value_1() {
     // set_deployed_at(1,1) from the 1inch contract in Solidity is:
     // 26959946667150639794667015087019630673637144422540572481103610249217
     solidity_output_bytes_array.extend_from_array(&[
-        0x03, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xfe, 0xff, 0xff, 0xfc, 0x2f, 0x00, 0x00, 0x00,
+        0x03, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xfc, 0x2f, 0x00,
+        0x00, 0x00,
     ]);
 
     // // Expect to return 26959946667150639794667015087019630673637144422540572481103610249217 as type bytes.
@@ -368,20 +365,20 @@ fn test_timelock_set_deployed_at_timelock_gt_mask() {
 
     // 26959946667150639794667015087019630673637144422540572481103610249217
     timelock_input_bytes_array.extend_from_array(&[
-        0x03, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xfe, 0xff, 0xff, 0xfc, 0x2f, 0x00, 0x00, 0x00,
+        0x03, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xfc, 0x2f, 0x00,
+        0x00, 0x00,
     ]);
 
     let timelock_input_u256: U256 = U256::from_be_bytes(&env, &timelock_input_bytes_array);
     let mask_value_input_u256: U256 = U256::from_u32(&env, 1);
 
-    let test_return_value_256: U256 = client.set_deployed_at(&timelock_input_u256, &mask_value_input_u256);   
-    
+    let test_return_value_256: U256 =
+        client.set_deployed_at(&timelock_input_u256, &mask_value_input_u256);
+
     let test_return_value_bytes: Bytes = test_return_value_256.to_be_bytes();
 
-     // Create a new Bytes array which we can modify.
+    // Create a new Bytes array which we can modify.
     let mut solidity_output_bytes_array: Bytes = Bytes::new(&env);
 
     // // Modify Bytes array to be uin256 max value.
@@ -392,10 +389,9 @@ fn test_timelock_set_deployed_at_timelock_gt_mask() {
     // set_deployed_at(1,1) from the 1inch contract in Solidity is:
 
     solidity_output_bytes_array.extend_from_array(&[
-        0x00, 0x3f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xfc, 0x2f,
+        0x00, 0x3f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff,
+        0xfc, 0x2f,
     ]);
 
     // // Expect to return 100 as type uint256.
@@ -414,6 +410,4 @@ fn test_timelock_rescue_start() {
     let test_return_value_256: U256 = client.rescue_start(&timelock_input_u256, &rescue_delay_u256);
 
     assert_eq!(test_return_value_256, U256::from_u32(&env, 1));
-
 }
-
