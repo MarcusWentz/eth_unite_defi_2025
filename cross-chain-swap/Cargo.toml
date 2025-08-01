@@ -12,6 +12,7 @@ order = { path = "contracts/order" }
 dutch-auction = { path = "contracts/dutch-auction" }
 resolver = { path = "contracts/resolver" }
 escrow = { path = "contracts/escrow" }
+dutch-auction-interface = { path = "contracts/dutch-auction-interface" }
 
 
 [profile.release]

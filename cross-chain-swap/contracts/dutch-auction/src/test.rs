@@ -3,12 +3,14 @@
 use super::*;
 use soroban_sdk::{
     testutils::{Address as _,}, 
-    Env, Address, U256
+    Env, Address, U256, Bytes, BytesN
 };
 use crate::{DutchAuctionCalculatorContract, DutchAuctionCalculatorContractClient};
+use dutch_auction_interface::{AuctionDetails};
+use order_interface::Order;
 
 #[test]
-fn test_dutch_auction_calculator() {
+fn test_dutch_auction_calculator_get_making_amount() {
     let env = Env::default();
     let contract_id = env.register(DutchAuctionCalculatorContract, ());
     let client = DutchAuctionCalculatorContractClient::new(&env, &contract_id);
@@ -19,18 +21,88 @@ fn test_dutch_auction_calculator() {
         taking_amount_end: U256::from_u128(&env, 10),
     };
 
-    // let making_amount = client.get_making_amount(&env, &auction_details);
+    let order = Order {
+        maker: Address::generate(&env),
+        maker_asset: Address::generate(&env),
+        taker_asset: Address::generate(&env),
+        making_amount: U256::from_u128(&env, 100),
+        taking_amount: U256::from_u128(&env, 1),
+        maker_traits: U256::from_u128(&env, 0),
+        receiver: Address::generate(&env),
+        salt: U256::from_u128(&env, 0),
+    };
 
-    // let order = Order {
-    //     maker: Address::generate(&env),
-    //     maker_asset: Address::generate(&env),
-    //     taker_asset: Address::generate(&env),
-    //     making_amount: U256::from_u128(&env, 100),
-    //     taking_amount: U256::from_u128(&env, 100),
-    //     maker_traits: MakerTraitsBuilder::new(env.clone()).build(),
-    //     receiver: Address::from_str(&env, "0x0000000000000000000000000000000000000000000000000000000000000000"),
-    //     salt: U256::from_u128(&env, 1),
-    // };
+    let res = client.get_making_amount(
+        &order,
+        &Bytes::from_array(&env, &[0; 0]),
+        &BytesN::from_array(&env, &[0; 32]),
+        &Address::generate(&env),
+        &U256::from_u128(&env, 100),
+        &U256::from_u128(&env, 100),
+        &auction_details,
+    );
+
+    assert_eq!(res, U256::from_u128(&env, 100));
+}
+
+#[test]
+fn test_dutch_auction_calculator_get_taking_amount() {
+    let env = Env::default();
+    let contract_id = env.register(DutchAuctionCalculatorContract, ());
+    let client = DutchAuctionCalculatorContractClient::new(&env, &contract_id);
+
+    let auction_details = AuctionDetails {
+        auction_start_time: U256::from_u128(&env, 1000),
+        taking_amount_start: U256::from_u128(&env, 100),
+        taking_amount_end: U256::from_u128(&env, 10),
+    };
+
+    let order = Order {
+        maker: Address::generate(&env),
+        maker_asset: Address::generate(&env),
+        taker_asset: Address::generate(&env),
+        making_amount: U256::from_u128(&env, 100),
+        taking_amount: U256::from_u128(&env, 1),
+        maker_traits: U256::from_u128(&env, 0),
+        receiver: Address::generate(&env),
+        salt: U256::from_u128(&env, 0),
+    };
+
+    let res = client.get_taking_amount(
+        &order,
+        &Bytes::from_array(&env, &[0; 0]),
+        &BytesN::from_array(&env, &[0; 32]),
+        &Address::generate(&env),
+        &U256::from_u128(&env, 100),
+        &U256::from_u128(&env, 100),
+        &auction_details,
+    );
+
+    assert_eq!(res, U256::from_u128(&env, 100));
+}
 
 
+#[test]
+fn test_dutch_auction_calculator_calculate_auction_taking_amount() {
+    let env = Env::default();
+    let contract_id = env.register(DutchAuctionCalculatorContract, ());
+    let client = DutchAuctionCalculatorContractClient::new(&env, &contract_id);
+
+    let res = client.calculate_auction_taking_amount(
+        &U256::from_u128(&env, 1000),
+        &U256::from_u128(&env, 100),
+        &U256::from_u128(&env, 1100),
+    );
+
+    assert_eq!(res, U256::from_u128(&env, 100));
+
+}
+
+#[test]
+fn test_bit_and() {
+    let env = Env::default();
+    let a = U256::from_u128(&env, 0x1234567890abcdef);
+    let b = U256::from_u128(&env, 0xabcdef1234567890);
+    let res = bit_and(env.clone(), a, b);
+    assert_eq!(res.to_be_bytes(), U256::from_u128(&env, 0x0204461010024880).to_be_bytes());
 }
