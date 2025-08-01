@@ -1,4 +1,4 @@
-use soroban_sdk::{contract, contractimpl, contracttype, Env, U256};
+use soroban_sdk::{contract, contractimpl, contracttype, Env, U256, Bytes};
 
 #[repr(u32)]
 #[derive(Copy, Clone)]
@@ -21,19 +21,27 @@ const DEPLOYED_AT_OFFSET: u32 = 224;
 // Contract implementation
 #[contractimpl]
 impl Timelocks {
+
     pub fn set_deployed_at(env: Env, timelocks: U256, value: U256) -> U256 {
-        // Create mask for upper 32 bits (0xffff_ffff << 224)
-        let mask = U256::from_parts(&env, 0xffff_ffff, 0, 0, 0);
+        // Convert `timelocks` (U256) to `Bytes`, then copy into [u8; 32]
+        let bytes_dyn = timelocks.to_be_bytes();
+        let mut bytes: [u8; 32] = [0; 32];
+        for (i, b) in bytes_dyn.iter().enumerate() {
+            bytes[i] = b;
+        }
 
-        // Clear the upper 32 bits by subtracting the mask if it's set
-        let cleared = if timelocks >= mask {
-            timelocks.sub(&mask)
-        } else {
-            timelocks
-        };
+        // Convert value to u32 using u128 -> u32 downcast
+        let value_u32: u32 = value
+            .to_u128()
+            .expect("value too large")
+            .try_into()
+            .expect("value doesn't fit in u32");
 
-        let shifted_value = value.shl(DEPLOYED_AT_OFFSET);
-        cleared.add(&shifted_value)
+        let value_bytes = value_u32.to_be_bytes();
+        bytes[0..4].copy_from_slice(&value_bytes); // set bits 224–255
+
+        let bytes_val = Bytes::from_array(&env, &bytes);
+        U256::from_be_bytes(&env, &bytes_val)
     }
 
     pub fn rescue_start(timelocks: U256, rescue_delay: U256) -> U256 {
