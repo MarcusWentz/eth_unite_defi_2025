@@ -1,10 +1,10 @@
 #![cfg(test)]
 
-use soroban_sdk::{testutils::{Address as _,}, Env, Address, U256, Bytes, BytesN};
+use soroban_sdk::{testutils::Address as _, Address, Bytes, BytesN, Env, U256};
 
-use crate::{OrderProtocol, OrderProtocolClient, Order};
-use dutch_auction::{DutchAuctionCalculatorContract};
-use dutch_auction_interface::{AuctionDetails};
+use crate::{Order, OrderProtocol, OrderProtocolClient};
+use dutch_auction::DutchAuctionCalculatorContract;
+use dutch_auction_interface::AuctionDetails;
 
 #[test]
 fn test_calculate_making_amount() {
@@ -12,9 +12,7 @@ fn test_calculate_making_amount() {
 
     let dutch_auction_calculator_address = env.register(DutchAuctionCalculatorContract, ());
 
-
-    let contract_id = env.register(
-        OrderProtocol, (&dutch_auction_calculator_address,));
+    let contract_id = env.register(OrderProtocol, (&dutch_auction_calculator_address,));
     let _client = OrderProtocolClient::new(&env, &contract_id);
 
     let _order = Order {

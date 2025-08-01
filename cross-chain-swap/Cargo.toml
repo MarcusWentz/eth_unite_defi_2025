@@ -13,6 +13,8 @@ order = { path = "contracts/order" }
 dutch-auction = { path = "contracts/dutch-auction" }
 escrow = { path = "contracts/escrow" }
 dutch-auction-interface = { path = "contracts/dutch-auction-interface" }
+utils = { path = "utils" }
+merkle-storage = { path = "contracts/merkle-storage" }
 
 
 [profile.release]

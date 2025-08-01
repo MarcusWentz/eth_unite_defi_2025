@@ -274,15 +274,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cross-chain-swap"
-version = "0.0.0"
-dependencies = [
- "escrow",
- "soroban-sdk",
- "soroban-token-sdk",
-]
-
-[[package]]
 name = "crypto-bigint"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -449,6 +440,7 @@ dependencies = [
  "dutch-auction-interface",
  "order-interface",
  "soroban-sdk",
+ "utils",
 ]
 
 [[package]]
@@ -784,6 +776,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a282da65faaf38286cf3be983213fcf1d2e2a58700e808f83f4ea9a4804bc0"
 
 [[package]]
+name = "merkle-storage"
+version = "0.0.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "num-bigint"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -842,6 +841,7 @@ dependencies = [
  "dutch-auction-interface",
  "order-interface",
  "soroban-sdk",
+ "utils",
 ]
 
 [[package]]
@@ -985,7 +985,6 @@ dependencies = [
 name = "resolver"
 version = "0.0.0"
 dependencies = [
- "cross-chain-swap",
  "escrow",
  "order",
  "order-interface",
@@ -1360,15 +1359,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "soroban-token-sdk"
-version = "22.0.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b5d44abd4abb253c0714d28b3b5a9db6aaf9afa1684c3a23778e07a201c3adb"
-dependencies = [
- "soroban-sdk",
-]
-
-[[package]]
 name = "soroban-wasmi"
 version = "0.31.1-soroban.20.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1526,6 +1516,13 @@ name = "unicode-ident"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512"
+
+[[package]]
+name = "utils"
+version = "0.0.0"
+dependencies = [
+ "soroban-sdk",
+]
 
 [[package]]
 name = "version_check"

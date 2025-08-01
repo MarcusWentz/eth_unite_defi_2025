@@ -1,4 +1,5 @@
-use soroban_sdk::{contract, contractimpl, Env, U256};
+use soroban_sdk::{Env, U256};
+use utils::math::bitand;
 
 use crate::consts_trait::{u256_bitwise_and, ConstTrait};
 
@@ -14,15 +15,15 @@ use crate::consts_trait::{u256_bitwise_and, ConstTrait};
 /// 224-247 bits `ARGS_EXTENSION_LENGTH`   - The length of the extension calldata in the args.
 /// 200-223 bits `ARGS_INTERACTION_LENGTH` - The length of the interaction calldata in the args.
 /// 0-184 bits                             - The threshold amount (the maximum amount a taker agrees to give in exchange for a making amount).
-#[contract]
+///
+
 pub struct TakerTraitsLib;
 
 impl ConstTrait for TakerTraitsLib {}
 
-#[contractimpl]
 impl TakerTraitsLib {
     /// Checks if the args should contain target address.
-    fn args_has_target(env: Env, taker_traits: U256) -> bool {
+    fn args_has_target(env: &Env, taker_traits: U256) -> bool {
         u256_bitwise_and(
             &env,
             &taker_traits,
@@ -32,7 +33,7 @@ impl TakerTraitsLib {
     }
 
     /// Retrieves the length of the extension calldata from the takerTraits.
-    fn args_extension_length(env: Env, taker_traits: U256) -> U256 {
+    fn args_extension_length(env: &Env, taker_traits: U256) -> U256 {
         u256_bitwise_and(
             &env,
             &taker_traits.shr(Self::ARGS_EXTENSION_LENGTH_OFFSET),
@@ -41,7 +42,7 @@ impl TakerTraitsLib {
     }
 
     /// Retrieves the length of the interaction calldata from the takerTraits.
-    fn args_interaction_length(env: Env, taker_traits: U256) -> U256 {
+    fn args_interaction_length(env: &Env, taker_traits: U256) -> U256 {
         u256_bitwise_and(
             &env,
             &taker_traits.shr(Self::ARGS_INTERACTION_LENGTH_OFFSET),
@@ -50,13 +51,13 @@ impl TakerTraitsLib {
     }
 
     /// Checks if the taking amount should be calculated based on making amount.
-    fn is_making_amount(env: Env, taker_traits: U256) -> bool {
+    pub fn is_making_amount(env: &Env, taker_traits: &U256) -> bool {
         u256_bitwise_and(&env, &taker_traits, &Self::maker_amount_flag(env.clone()))
             .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the order should unwrap WETH and send ETH to taker.
-    fn unwrap_weth(env: Env, taker_traits: U256) -> bool {
+    fn unwrap_weth(env: &Env, taker_traits: U256) -> bool {
         u256_bitwise_and(
             &env,
             &taker_traits,
@@ -66,7 +67,7 @@ impl TakerTraitsLib {
     }
 
     /// Checks if the order should skip maker's permit execution.
-    fn skip_maker_permit(env: Env, taker_traits: U256) -> bool {
+    fn skip_maker_permit(env: &Env, taker_traits: U256) -> bool {
         u256_bitwise_and(
             &env,
             &taker_traits,
@@ -76,7 +77,7 @@ impl TakerTraitsLib {
     }
 
     /// Checks if the order uses the permit2 instead of permit.
-    fn use_permit2(env: Env, taker_traits: U256) -> bool {
+    fn use_permit2(env: &Env, taker_traits: U256) -> bool {
         u256_bitwise_and(
             &env,
             &taker_traits,
@@ -87,7 +88,7 @@ impl TakerTraitsLib {
 
     /// Retrieves the threshold amount from the takerTraits.
     /// The maximum amount a taker agrees to give in exchange for a making amount.
-    fn threshold(env: Env, taker_traits: U256) -> U256 {
-        u256_bitwise_and(&env, &taker_traits, &Self::amount_mask(env.clone()))
+    pub fn threshold(env: &Env, taker_traits: U256) -> U256 {
+        bitand(&env, taker_traits, Self::amount_mask(env))
     }
 }

@@ -1,41 +1,11 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, Address, Bytes, BytesN, Env, U256, log};
+use soroban_sdk::{contract, contractimpl, log, Address, Bytes, BytesN, Env, U256};
 
-use order_interface::Order;
 use dutch_auction_interface::{AuctionDetails, DutchAuctionCalculatorInterface};
+use order_interface::Order;
+use utils::math::{bitand, max_num, min_num};
 
 const _LOW_128_BITS: u128 = 0xffffffffffffffffffffffffffffffff;
-
-fn max_num<'a>(a: &'a U256, b: &'a U256) -> &'a U256 {
-    if a >= b {
-        a
-    } else {
-        b
-    }
-}
-
-fn min_num<'a>(a: &'a U256, b: &'a U256) -> &'a U256 {
-    if a < b {
-        a
-    } else {
-        b
-    }
-}
-
-pub fn bit_and(env: Env, a: U256, b: U256) -> U256 {
-    let a_bytes = a.to_be_bytes();
-    let b_bytes = b.to_be_bytes();
-
-    let mut result = Bytes::from_array(&env, &[0; 32]);
-
-    for i in 0..32 {
-        let byte_result = a_bytes.get(i).unwrap_or(0) & b_bytes.get(i).unwrap_or(0);
-        result.set(i, byte_result);
-    }
-
-    return U256::from_be_bytes(&env, &result);
-}
-
 #[contract]
 pub struct DutchAuctionCalculatorContract;
 
@@ -57,7 +27,11 @@ impl DutchAuctionCalculatorInterface for DutchAuctionCalculatorContract {
             auction_details.taking_amount_start,
             auction_details.taking_amount_end,
         );
-        log!(&env, "calculated_taking_amount: {}", calculated_taking_amount);
+        log!(
+            &env,
+            "calculated_taking_amount: {}",
+            calculated_taking_amount
+        );
         return order
             .making_amount
             .mul(&taking_amount)
@@ -81,7 +55,7 @@ impl DutchAuctionCalculatorInterface for DutchAuctionCalculatorContract {
             auction_details.taking_amount_end,
         );
 
-        // 
+        //
         let numerator = calculated_taking_amount.mul(&making_amount);
 
         // divide and round up
@@ -102,7 +76,11 @@ impl DutchAuctionCalculatorInterface for DutchAuctionCalculatorContract {
         let start_time = auction_start_time.shr(128);
 
         // The last 128 bits contain the end time, masked with _LOW_128_BITS to extract it
-        let end_time = bit_and(env.clone(), auction_start_time, U256::from_u128(&env, _LOW_128_BITS));
+        let end_time = bitand(
+            &env,
+            auction_start_time,
+            U256::from_u128(&env, _LOW_128_BITS),
+        );
 
         // Get current time bounded between start and end time
         let block_time = U256::from_u128(&env, env.ledger().timestamp() as u128);

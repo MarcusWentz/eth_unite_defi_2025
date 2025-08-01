@@ -1,13 +1,10 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{
-    testutils::{Address as _,}, 
-    Env, Address, U256, Bytes, BytesN
-};
 use crate::{DutchAuctionCalculatorContract, DutchAuctionCalculatorContractClient};
-use dutch_auction_interface::{AuctionDetails};
+use dutch_auction_interface::AuctionDetails;
 use order_interface::Order;
+use soroban_sdk::{testutils::Address as _, Address, Bytes, BytesN, Env, U256};
 
 #[test]
 fn test_dutch_auction_calculator_get_making_amount() {
@@ -81,7 +78,6 @@ fn test_dutch_auction_calculator_get_taking_amount() {
     assert_eq!(res, U256::from_u128(&env, 100));
 }
 
-
 #[test]
 fn test_dutch_auction_calculator_calculate_auction_taking_amount() {
     let env = Env::default();
@@ -95,7 +91,6 @@ fn test_dutch_auction_calculator_calculate_auction_taking_amount() {
     );
 
     assert_eq!(res, U256::from_u128(&env, 100));
-
 }
 
 #[test]
@@ -103,6 +98,18 @@ fn test_bit_and() {
     let env = Env::default();
     let a = U256::from_u128(&env, 0x1234567890abcdef);
     let b = U256::from_u128(&env, 0xabcdef1234567890);
-    let res = bit_and(env.clone(), a, b);
-    assert_eq!(res.to_be_bytes(), U256::from_u128(&env, 0x0204461010024880).to_be_bytes());
+    let res = bitand(&env, a, b);
+    assert_eq!(
+        res.to_be_bytes(),
+        U256::from_u128(&env, 0x0204461010024880).to_be_bytes()
+    );
+}
+
+#[test]
+fn test_bit_and_meaningful_test() {
+    let env = Env::default();
+    let a = U256::from_u128(&env, 10000123);
+    let b = U256::from_u128(&env, 10000120);
+    let res = bitand(&env, a, b);
+    assert_eq!(res, U256::from_u128(&env, 10000120));
 }

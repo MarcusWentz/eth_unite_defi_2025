@@ -87,7 +87,7 @@ pub trait ConstTrait {
         U256::from_u32(&env, 1).shl(251)
     }
 
-    fn amount_mask(env: Env) -> U256 {
+    fn amount_mask(env: &Env) -> U256 {
         // 0x000000000000000000ffffffffffffffffffffffffffffffffffffffffffffff
         let bytes = Bytes::from_array(
             &env,

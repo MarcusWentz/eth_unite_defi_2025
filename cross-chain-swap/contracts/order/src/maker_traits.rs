@@ -68,8 +68,7 @@ impl MakerTraitsLib {
 
     /// Checks if the order has expired.
     pub fn is_expired(env: &Env, maker_traits: U256) -> bool {
-        let expiration =
-            Self::extract_low_bits(env, maker_traits, Self::EXPIRATION_OFFSET, 40);
+        let expiration = Self::extract_low_bits(env, maker_traits, Self::EXPIRATION_OFFSET, 40);
 
         if expiration == 0 {
             return false; // No expiration set

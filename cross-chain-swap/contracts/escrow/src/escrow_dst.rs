@@ -1,6 +1,8 @@
 use super::base_escrow::{BaseEscrow, Error};
-use crate::escrow_factory::timelocks::{Stage, Timelocks};
-use escrow::Immutables;
+use escrow::{
+    timelocks::{Stage, Timelocks},
+    Immutables,
+};
 use soroban_sdk::{contract, contractimpl, symbol_short, BytesN, Env, Symbol};
 
 // Source chain escrow contract
@@ -76,7 +78,7 @@ impl EscrowDst {
             env.clone(),
             immutables.token,
             immutables.taker,
-            immutables.amount,
+            immutables.amount as i128,
         );
 
         env.events()
@@ -92,7 +94,7 @@ impl EscrowDst {
             env.clone(),
             immutables.token,
             immutables.maker,
-            immutables.amount,
+            immutables.amount as i128,
         );
         env.events()
             .publish((&ESCROW_DST, symbol_short!("withdraw")), secret);
