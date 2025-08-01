@@ -446,7 +446,16 @@ checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 name = "dutch-auction"
 version = "0.0.0"
 dependencies = [
- "order",
+ "dutch-auction-interface",
+ "order-interface",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "dutch-auction-interface"
+version = "0.0.0"
+dependencies = [
+ "order-interface",
  "soroban-sdk",
 ]
 
@@ -829,6 +838,9 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 name = "order"
 version = "0.0.0"
 dependencies = [
+ "dutch-auction",
+ "dutch-auction-interface",
+ "order-interface",
  "soroban-sdk",
 ]
 
