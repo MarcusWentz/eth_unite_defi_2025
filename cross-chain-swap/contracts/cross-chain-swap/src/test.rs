@@ -288,11 +288,11 @@ fn test_timelock_get_return_1() {
     let test_return_value_256: U256 = client.get(&timelock_input_u256, &stage_status);
     // // let test_return_value_256: U256 = get(&timelock_input_u256, &stage_status);
 
-    // // Expect to return 1 as type uin256.
-    // assert_eq!(
-    //     test_return_value_256,
-    //     U256::from_u32(&env, 1)
-    // );
+    // Expect to return 1 as type uin256.
+    assert_eq!(
+        test_return_value_256,
+        U256::from_u32(&env, 1)
+    );
 }
 
 #[test]
@@ -304,10 +304,9 @@ fn test_timelock_set_deployed_at_mask_value_0() {
     let timelock_input_u256: U256 = U256::from_u32(&env, 100);
     let mask_value_input_u256: U256 = U256::from_u32(&env, 0);
 
-    let test_return_value_256: U256 =
-        client.set_deployed_at(&timelock_input_u256, &mask_value_input_u256);
+    let test_return_value_256: U256 = client.set_deployed_at(&timelock_input_u256, &mask_value_input_u256);
 
-    // Expect to return 1 as type uin256.
+    // Expect to return 100 as type uint256.
     assert_eq!(test_return_value_256, U256::from_u32(&env, 100));
 }
 
@@ -340,6 +339,22 @@ fn test_timelock_set_deployed_at_mask_value_1() {
         0, 1,
     ]);
 
-    // Expect to return 1 as type uin256.
+    // Expect to return 26959946667150639794667015087019630673637144422540572481103610249217 as type bytes.
     assert_eq!(test__return_value_bytes, bytes_array);
 }
+
+#[test]
+fn test_timelock_rescue_start() {
+    let env = Env::default();
+    let contract_id = env.register(Timelocks, ());
+    let client = TimelocksClient::new(&env, &contract_id);
+
+    let timelock_input_u256: U256 = U256::from_u32(&env, 1);
+    let rescue_delay_u256: U256 = U256::from_u32(&env, 1);
+
+    let test_return_value_256: U256 = client.rescue_start(&timelock_input_u256, &rescue_delay_u256);
+
+    assert_eq!(test_return_value_256, U256::from_u32(&env, 1));
+
+}
+
