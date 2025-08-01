@@ -21,6 +21,12 @@ pub struct TakerTraitsLib;
 
 impl ConstTrait for TakerTraitsLib {}
 
+// Builder pattern for constructing TakerTraits
+pub struct TakerTraitsBuilder {
+    traits: U256,
+    env: Env,
+}
+
 impl TakerTraitsLib {
     /// Checks if the args should contain target address.
     fn args_has_target(env: &Env, taker_traits: U256) -> bool {
