@@ -1,13 +1,11 @@
 #![cfg(test)]
 
+use crate::merkle_proof::{commutative_keccak256, concat_bytes, process_proof, MerkleProof};
 use crate::merkle_storage_invalidator::{
-    MerkleStorageInvalidatorContract, MerkleStorageInvalidatorContractClient,
-    LAST_VALIDATED, ValidationData, TakerData,
+    MerkleStorageInvalidatorContract, MerkleStorageInvalidatorContractClient, TakerData,
+    ValidationData, LAST_VALIDATED,
 };
-use crate::merkle_proof::{
-    commutative_keccak256, concat_bytes, process_proof, MerkleProof,
-};
-use soroban_sdk::{vec, BytesN, Env, U256, symbol_short};
+use soroban_sdk::{symbol_short, vec, BytesN, Env, U256};
 
 #[test]
 fn test_merkle_storage_invalidator() {
