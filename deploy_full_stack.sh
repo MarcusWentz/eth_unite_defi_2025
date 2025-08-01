@@ -137,7 +137,17 @@ TAKER_ASSET="0x0000000000000000000000000000000000000000000000000000000000000000"
 MAKER_TRAITS="967101221531144175919556390646195146547200"
 
 echo "Deploying contract instance..."
-ORDER="--order '{ ${SALT} \"${ALICE_PUBLIC_KEY}\", \"receiver\": \"${BOB_PUBLIC_KEY}\", \"maker_asset\": \"${MAKER_ASSET}\", \"taker_asset\": \"${TAKER_ASSET}\", \"maker_amount\": 1000000000000000000, \"taker_amount\": 1000000000000000000, \"salt\": ${SALT}, \"maker_traits\": \"${MAKER_TRAITS}\" }'"
+ORDER='--order "{
+    "maker": "${ALICE_PUBLIC_KEY}",
+    "maker_asset": "${MAKER_ASSET}",
+    "maker_traits": "${MAKER_TRAITS}",
+    "receiver": "${BOB_PUBLIC_KEY}",
+    "salt": "1",
+    "taker_asset": "${TAKER_ASSET}",
+    "taking_amount": "1000000000000000000",
+    "extension": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "interaction": "0x0000000000000000000000000000000000000000000000000000000000000000"
+}" '
 
 echo "Invoking 'calculate_making_amount' function..."
 INVOKE_RESULT=$(stellar contract invoke --id "${CONTRACT_ID}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- calculate_making_amount ${ORDER})
