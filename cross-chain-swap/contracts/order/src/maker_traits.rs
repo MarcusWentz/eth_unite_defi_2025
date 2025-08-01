@@ -1,6 +1,7 @@
 use soroban_sdk::{contract, contractimpl, xdr::ToXdr, Address, Env, U256};
 
-use crate::consts_trait::{u256_bitwise_and, ConstTrait};
+use crate::consts_trait::{ConstTrait};
+use utils::math::bitand;
 
 /// MakerTraitsLib equivalent for Soroban
 ///
@@ -30,8 +31,8 @@ impl ConstTrait for MakerTraitsLib {}
 impl MakerTraitsLib {
     /// Checks if the order has the extension flag set.
     /// If the `HAS_EXTENSION_FLAG` is set in the maker_traits, then the protocol expects that the order has extension(s).
-    fn has_extension(env: Env, maker_traits: U256) -> bool {
-        u256_bitwise_and(&env, &maker_traits, &Self::has_extension_flag(env.clone()))
+    pub fn has_extension(env: Env, maker_traits: U256) -> bool {
+        bitand(&env, maker_traits, Self::has_extension_flag(env.clone()))
             .ne(&U256::from_u32(&env, 0))
     }
 
@@ -61,7 +62,7 @@ impl MakerTraitsLib {
 
         let sender_u256 = U256::from_u128(&env, sender_bits);
         let masked_sender =
-            u256_bitwise_and(&env, &sender_u256, &Self::allowed_sender_mask(env.clone()));
+            bitand(&env, sender_u256, Self::allowed_sender_mask(env.clone()));
 
         allowed_sender_bits as u128 == masked_sender.to_u128().unwrap()
     }
@@ -91,30 +92,30 @@ impl MakerTraitsLib {
     /// Determines if the order allows partial fills.
     /// If the NO_PARTIAL_FILLS_FLAG is not set in the maker_traits, then the order allows partial fills.
     pub fn allow_partial_fills(env: &Env, maker_traits: U256) -> bool {
-        !u256_bitwise_and(
+        !bitand(
             &env,
-            &maker_traits,
-            &Self::no_partial_fills_flag(env.clone()),
+            maker_traits,
+            Self::no_partial_fills_flag(env.clone()),
         )
         .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs pre-interaction call.
     pub fn need_pre_interaction_call(env: &Env, maker_traits: U256) -> bool {
-        u256_bitwise_and(
+        bitand(
             &env,
-            &maker_traits,
-            &Self::pre_interaction_call_flag(env.clone()),
+            maker_traits,
+            Self::pre_interaction_call_flag(env.clone()),
         )
         .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs post-interaction call.
     pub fn need_post_interaction_call(env: &Env, maker_traits: U256) -> bool {
-        u256_bitwise_and(
+        bitand(
             &env,
-            &maker_traits,
-            &Self::post_interaction_call_flag(env.clone()),
+            maker_traits,
+            Self::post_interaction_call_flag(env.clone()),
         )
         .ne(&U256::from_u32(&env, 0))
     }
@@ -122,10 +123,10 @@ impl MakerTraitsLib {
     /// Determines if the order allows multiple fills.
     /// If the ALLOW_MULTIPLE_FILLS_FLAG is set in the maker_traits, then the maker allows multiple fills.
     pub fn allow_multiple_fills(env: &Env, maker_traits: U256) -> bool {
-        u256_bitwise_and(
+        bitand(
             &env,
-            &maker_traits,
-            &Self::allow_multiple_fills_flag(env.clone()),
+            maker_traits,
+            Self::allow_multiple_fills_flag(env.clone()),
         )
         .ne(&U256::from_u32(&env, 0))
     }
@@ -139,30 +140,30 @@ impl MakerTraitsLib {
 
     /// Checks if the maker needs to check the epoch.
     pub fn need_check_epoch_manager(env: &Env, maker_traits: U256) -> bool {
-        u256_bitwise_and(
+        bitand(
             &env,
-            &maker_traits,
-            &Self::need_check_epoch_manager_flag(env.clone()),
+            maker_traits,
+            Self::need_check_epoch_manager_flag(env.clone()),
         )
         .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker uses permit2.
     pub fn use_permit2(env: Env, maker_traits: U256) -> bool {
-        u256_bitwise_and(
+        bitand(
             &env,
-            &maker_traits,
-            &Self::use_permit2_maker_flag(env.clone()),
+            maker_traits,
+            Self::use_permit2_maker_flag(env.clone()),
         )
         .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs to unwrap WETH.
     pub fn unwrap_weth(env: Env, maker_traits: U256) -> bool {
-        u256_bitwise_and(
+        bitand(
             &env,
-            &maker_traits,
-            &Self::unwrap_weth_maker_flag(env.clone()),
+            maker_traits,
+            Self::unwrap_weth_maker_flag(env.clone()),
         )
         .ne(&U256::from_u32(&env, 0))
     }
@@ -178,7 +179,7 @@ impl MakerTraitsLib {
             .sub(&U256::from_u32(&env, 1));
 
         // Apply mask using our bitwise AND
-        let result = u256_bitwise_and(env, &shifted, &mask);
+        let result = bitand(&env, shifted, mask);
 
         // Convert to u64 (assuming it fits)
         result.to_u128().unwrap() as u64
@@ -202,7 +203,7 @@ impl MakerTraitsBuilder {
     pub fn with_allowed_sender(mut self, sender_bits: u128) -> Self {
         let sender_u256 = U256::from_u128(&self.env, sender_bits);
         let mask = MakerTraitsLib::allowed_sender_mask(self.env.clone());
-        let masked_sender = u256_bitwise_and(&self.env, &sender_u256, &mask);
+        let masked_sender = bitand(&self.env, sender_u256, mask);
         self.traits = self.traits.add(&masked_sender);
         self
     }
@@ -210,7 +211,7 @@ impl MakerTraitsBuilder {
     pub fn with_expiration(mut self, expiration: u64) -> Self {
         let expiration_u256 = U256::from_u128(&self.env, expiration as u128);
         let mask = MakerTraitsLib::expiration_mask(self.env.clone());
-        let masked_expiration = u256_bitwise_and(&self.env, &expiration_u256, &mask);
+        let masked_expiration = bitand(&self.env, expiration_u256, mask);
         let shifted = masked_expiration.shl(MakerTraitsLib::EXPIRATION_OFFSET);
         self.traits = self.traits.add(&shifted);
         self
@@ -219,7 +220,7 @@ impl MakerTraitsBuilder {
     pub fn with_nonce_or_epoch(mut self, nonce_or_epoch: u64) -> Self {
         let nonce_u256 = U256::from_u128(&self.env, nonce_or_epoch as u128);
         let mask = MakerTraitsLib::nonce_or_epoch_mask(self.env.clone());
-        let masked_nonce = u256_bitwise_and(&self.env, &nonce_u256, &mask);
+        let masked_nonce = bitand(&self.env, nonce_u256, mask);
         let shifted = masked_nonce.shl(MakerTraitsLib::NONCE_OR_EPOCH_OFFSET);
         self.traits = self.traits.add(&shifted);
         self
@@ -228,7 +229,7 @@ impl MakerTraitsBuilder {
     pub fn with_series(mut self, series: u64) -> Self {
         let series_u256 = U256::from_u128(&self.env, series as u128);
         let mask = MakerTraitsLib::series_mask(self.env.clone());
-        let masked_series = u256_bitwise_and(&self.env, &series_u256, &mask);
+        let masked_series = bitand(&self.env, series_u256, mask);
         let shifted = masked_series.shl(MakerTraitsLib::SERIES_OFFSET);
         self.traits = self.traits.add(&shifted);
         self

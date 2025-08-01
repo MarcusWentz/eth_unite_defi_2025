@@ -242,3 +242,4 @@ impl OrderProtocol {
 }
 
 mod test;
+mod maker_traits_test;
