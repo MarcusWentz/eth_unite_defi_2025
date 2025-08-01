@@ -3,6 +3,9 @@ use utils::math::bitand;
 
 use crate::consts_trait::{u256_bitwise_and, ConstTrait};
 
+// 1inch Solidity version:
+// https://github.com/1inch/limit-order-protocol/blob/master/contracts/libraries/TakerTraitsLib.sol
+
 /// TakerTraitsLib equivalent for Soroban
 ///
 /// The TakerTraits type is a U256 and different parts of the number are used to encode different traits.

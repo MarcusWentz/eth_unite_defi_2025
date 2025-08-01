@@ -3,6 +3,9 @@ use soroban_sdk::{contract, contractimpl, xdr::ToXdr, Address, Env, U256};
 use crate::consts_trait::ConstTrait;
 use utils::math::bitand;
 
+// 1inch Solidity version:
+// https://github.com/1inch/limit-order-protocol/blob/master/contracts/libraries/MakerTraitsLib.sol
+
 /// MakerTraitsLib equivalent for Soroban
 ///
 /// The MakerTraits type is a U256 and different parts of the number are used to encode different traits.
@@ -22,6 +25,7 @@ use utils::math::bitand;
 /// uint40 expiration timestamp (0 if none)
 /// uint40 nonce or epoch
 /// uint40 series
+
 #[contract]
 pub struct MakerTraitsLib;
 
