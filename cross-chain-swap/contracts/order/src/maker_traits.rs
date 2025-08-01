@@ -1,6 +1,6 @@
 use soroban_sdk::{contract, contractimpl, xdr::ToXdr, Address, Env, U256};
 
-use crate::consts_trait::{ConstTrait};
+use crate::consts_trait::ConstTrait;
 use utils::math::bitand;
 
 /// MakerTraitsLib equivalent for Soroban
@@ -61,8 +61,7 @@ impl MakerTraitsLib {
         }
 
         let sender_u256 = U256::from_u128(&env, sender_bits);
-        let masked_sender =
-            bitand(&env, sender_u256, Self::allowed_sender_mask(env.clone()));
+        let masked_sender = bitand(&env, sender_u256, Self::allowed_sender_mask(env.clone()));
 
         allowed_sender_bits as u128 == masked_sender.to_u128().unwrap()
     }
@@ -92,12 +91,8 @@ impl MakerTraitsLib {
     /// Determines if the order allows partial fills.
     /// If the NO_PARTIAL_FILLS_FLAG is not set in the maker_traits, then the order allows partial fills.
     pub fn allow_partial_fills(env: &Env, maker_traits: U256) -> bool {
-        !bitand(
-            &env,
-            maker_traits,
-            Self::no_partial_fills_flag(env.clone()),
-        )
-        .ne(&U256::from_u32(&env, 0))
+        !bitand(&env, maker_traits, Self::no_partial_fills_flag(env.clone()))
+            .ne(&U256::from_u32(&env, 0))
     }
 
     /// Checks if the maker needs pre-interaction call.
