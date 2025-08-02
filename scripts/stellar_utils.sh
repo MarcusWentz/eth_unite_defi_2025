@@ -1,0 +1,92 @@
+stellar_check_dependencies() {
+  echo "Checking for dependencies..."
+  command -v cargo &> /dev/null || fail "Cargo (Rust) is not installed."
+  command -v stellar &> /dev/null || fail "Stellar CLI is not installed (e.g., via brew)."
+  echo "All dependencies are installed."
+}
+
+stellar_setup_keypair() {
+  echo "Generating keypair for '${STELLAR_IDENTITY_NAME}'..."
+  stellar keys generate ${STELLAR_IDENTITY_NAME} > /dev/null
+  PUBLIC_KEY=$(stellar keys address ${STELLAR_IDENTITY_NAME})
+  echo "Using identity '${STELLAR_IDENTITY_NAME}' with Public Key: ${PUBLIC_KEY}"
+
+  stellar network add \
+    --rpc-url https://soroban-testnet.stellar.org \
+    --network-passphrase "Test SDF Network ; September 2015" \
+    "testnet" > /dev/null
+  
+  echo "Checking account exists..."
+  ACCOUNT_STATUS=$(curl -s "https://horizon-testnet.stellar.org/accounts/${PUBLIC_KEY}" | jq -r '.status // "not_found"')
+  
+  if [[ "$ACCOUNT_STATUS" == "not_found" ]] || [[ "$ACCOUNT_STATUS" == "404" ]]; then
+    echo "Account not found. Funding with Friendbot..."
+    FRIENDBOT_RESPONSE=$(curl -s "https://friendbot.stellar.org?addr=${PUBLIC_KEY}")
+    echo "Friendbot response: ${FRIENDBOT_RESPONSE}"
+    
+    # Wait for account creation
+    sleep 10
+    
+    # Verify account was created
+    ACCOUNT_CHECK=$(curl -s "https://horizon-testnet.stellar.org/accounts/${PUBLIC_KEY}" | jq -r '.account_id // "not_found"')
+    
+    if [[ "$ACCOUNT_CHECK" == "not_found" ]]; then
+      fail "Failed to create account via Friendbot"
+    fi
+    
+    echo "Account successfully created and funded."
+  else
+    echo "Account already exists."
+  fi
+  
+  # Get current balance
+  BALANCE=$(curl -s "https://horizon-testnet.stellar.org/accounts/${PUBLIC_KEY}" | jq -r '.balances[] | select(.asset_type=="native") | .balance')
+  echo "Current XLM balance: ${BALANCE}"
+}
+
+stellar_deploy_escrow_factory() {
+  echo "Building and deploying '${SOROBAN_PACKAGE_NAME}' contract..."
+  cargo build --manifest-path ./${STELLAR_PROJECT_DIR}/contracts/${SOROBAN_PACKAGE_NAME}/Cargo.toml --target wasm32-unknown-unknown --release || fail "Cargo build failed."
+  WASM_PATH="./${STELLAR_PROJECT_DIR}/target/wasm32-unknown-unknown/release/${SOROBAN_WASM_NAME}.wasm"
+
+  echo "Uploading Wasm..."
+  WASM_HASH=$(stellar contract upload --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network testnet)
+  [ -z "$WASM_HASH" ] && fail "Failed to upload Wasm."
+  echo "Wasm uploaded. Hash: ${WASM_HASH}"
+
+  echo "Deploying contract instance..."
+  CONTRACT_ID=$(stellar contract deploy --wasm-hash "${WASM_HASH}" --source-account ${STELLAR_IDENTITY_NAME} --network testnet)
+  [ -z "$CONTRACT_ID" ] && fail "Failed to deploy contract."
+  echo "Contract deployed! ID: ${CONTRACT_ID}"
+}
+
+deployEscrowDstStellar() {
+  export RUST_BACKTRACE=1
+
+  echo "Invoking 'create_dst_escrow' function..."
+
+  echo "---- ID: ${CONTRACT_ID} ----"
+  echo "---- STELLAR_IDENTITY_NAME: ${STELLAR_IDENTITY_NAME} ----"
+
+  INVOKE_RESULT=$(stellar contract invoke \
+  --id "${CONTRACT_ID}" \
+  --source-account ${STELLAR_IDENTITY_NAME} \
+  --network testnet \
+  -- \
+  create_dst_escrow \
+    --dst_immutables "{
+    'order_hash': '091eae8c4f0d591a218d306dd268c8afc34f0d4e7e47e586727eedafd5b3eace',
+    'hashlock': '${HASHLOCK}',
+    'maker': '${MAKER_ADDR}',
+    'taker': '${PUBLIC_KEY}', 
+    'token': '${DST_TOKEN}',
+    'amount': '${DST_AMOUNT}',
+    'safety_deposit': '${SAFETY_DEPOSIT}',
+    'timelocks': '47060477689451080397812265084919941810737379146180464814593056046548405715244'
+    }" \
+    --src_cancellaqtion_timestamp "1735776000"
+    # 'taker': '${PUBLIC_KEY}', 
+  )
+
+  echo "Invoke result: ${INVOKE_RESULT}"
+}
