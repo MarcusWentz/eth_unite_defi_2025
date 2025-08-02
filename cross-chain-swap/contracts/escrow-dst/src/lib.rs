@@ -1,9 +1,8 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, symbol_short, Env, BytesN, Symbol};
+use soroban_sdk::{contract, contractimpl, symbol_short, BytesN, Env, Symbol};
 
-use base_escrow::{base_escrow::BaseEscrow, Immutables};
 use base_escrow::timelocks::{Stage, Timelocks};
-
+use base_escrow::{base_escrow::BaseEscrow, Immutables};
 
 #[contract]
 pub struct EscrowDst;
@@ -46,11 +45,7 @@ impl EscrowDst {
         Self::withdraw_priv(env, secret, immutables);
     }
 
-    fn public_withdraw(
-        env: Env,
-        secret: BytesN<32>,
-        immutables: Immutables,
-    ) {
+    fn public_withdraw(env: Env, secret: BytesN<32>, immutables: Immutables) {
         let res = Self::only_acess_token_holder(env.clone());
         if let Err(e) = res {
             panic!("Not a access token holder");
@@ -125,5 +120,4 @@ impl EscrowDst {
         env.events()
             .publish((&ESCROW_DST, symbol_short!("withdraw")), secret);
     }
-    
 }

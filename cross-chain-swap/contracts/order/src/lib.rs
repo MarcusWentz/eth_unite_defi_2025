@@ -12,6 +12,7 @@ use utils::math::min_num;
 pub mod consts_trait;
 pub mod maker_traits;
 pub mod taker_traits;
+pub mod xlm_orders;
 
 const DUTCH_AUCTION_CALCULATOR_ADDRESS_KEY: Symbol = symbol_short!("DA_ADDY");
 /// Order filled event
@@ -125,7 +126,7 @@ impl OrderProtocol {
         // ignoring extension predicate check.
 
         // Checks if the taking amount should be calculated based on making amount.
-        let is_making_amount = TakerTraitsLib::is_making_amount(&env, &_taker_traits); // takerTraits.isMakingAmount
+        let is_making_amount = TakerTraitsLib::is_making_amount(&env, &_taker_traits.clone()); // takerTraits.isMakingAmount
         if is_making_amount {
             let making_amount = min_num(&order.making_amount, &remaining_making_amount);
 
@@ -241,6 +242,6 @@ impl OrderProtocol {
     }
 }
 
-mod taker_traits_test;
 mod maker_traits_test;
+mod taker_traits_test;
 mod test;

@@ -26,7 +26,7 @@ impl ConstTrait for TakerTraitsLib {}
 
 impl TakerTraitsLib {
     /// Checks if the args should contain target address.
-    fn args_has_target(env: &Env, taker_traits: U256) -> bool {
+    fn _args_has_target(env: &Env, taker_traits: U256) -> bool {
         u256_bitwise_and(
             &env,
             &taker_traits,
@@ -36,7 +36,7 @@ impl TakerTraitsLib {
     }
 
     /// Retrieves the length of the extension calldata from the takerTraits.
-    fn args_extension_length(env: &Env, taker_traits: U256) -> U256 {
+    fn _args_extension_length(env: &Env, taker_traits: U256) -> U256 {
         u256_bitwise_and(
             &env,
             &taker_traits.shr(Self::ARGS_EXTENSION_LENGTH_OFFSET),
@@ -45,7 +45,7 @@ impl TakerTraitsLib {
     }
 
     /// Retrieves the length of the interaction calldata from the takerTraits.
-    fn args_interaction_length(env: &Env, taker_traits: U256) -> U256 {
+    fn _args_interaction_length(env: &Env, taker_traits: U256) -> U256 {
         u256_bitwise_and(
             &env,
             &taker_traits.shr(Self::ARGS_INTERACTION_LENGTH_OFFSET),
@@ -70,7 +70,7 @@ impl TakerTraitsLib {
     }
 
     /// Checks if the order should skip maker's permit execution.
-    fn skip_maker_permit(env: &Env, taker_traits: U256) -> bool {
+    fn _skip_maker_permit(env: &Env, taker_traits: U256) -> bool {
         u256_bitwise_and(
             &env,
             &taker_traits,
@@ -80,7 +80,7 @@ impl TakerTraitsLib {
     }
 
     /// Checks if the order uses the permit2 instead of permit.
-    fn use_permit2(env: &Env, taker_traits: U256) -> bool {
+    fn _use_permit2(env: &Env, taker_traits: U256) -> bool {
         u256_bitwise_and(
             &env,
             &taker_traits,

@@ -1,11 +1,11 @@
+use soroban_sdk::token::Client as TokenClient;
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address, BytesN,
     Env, Symbol, U256,
 };
-use soroban_sdk::token::Client as TokenClient;
 
-use base_escrow::{Immutables};
 use base_escrow::timelocks::{Stage, Timelocks};
+use base_escrow::Immutables;
 use escrow_factory_interface::EscrowFactoryInterface;
 
 // CONTRACTS
@@ -53,15 +53,18 @@ const XLM_ADDRESS: Symbol = symbol_short!("XLM_ADD");
 // Contract implementation
 #[contractimpl]
 impl EscrowFactoryInterface for EscrowFactory {
-
     fn __constructor(
-        env: Env, 
-        escrow_dst_wasm_hash: BytesN<32>, 
+        env: Env,
+        escrow_dst_wasm_hash: BytesN<32>,
         escrow_src_wasm_hash: BytesN<32>,
-        xlm_address: Address
+        xlm_address: Address,
     ) {
-        env.storage().instance().set(&DST_ESCROW_WASM, &escrow_dst_wasm_hash);
-        env.storage().instance().set(&SRC_ESCROW_WASM, &escrow_src_wasm_hash);
+        env.storage()
+            .instance()
+            .set(&DST_ESCROW_WASM, &escrow_dst_wasm_hash);
+        env.storage()
+            .instance()
+            .set(&SRC_ESCROW_WASM, &escrow_src_wasm_hash);
         env.storage().instance().set(&XLM_ADDRESS, &xlm_address);
     }
 
@@ -150,7 +153,10 @@ impl EscrowFactoryInterface for EscrowFactory {
 
         // Transfer tokens to escrow (works for both XLM and other tokens in Stellar)
         // This mirrors the Solidity: IERC20(token).safeTransferFrom(msg.sender, escrow, amount)
-        let amount_signed : i128 = amount.clone().try_into().expect("u128 value too large for i128");
+        let amount_signed: i128 = amount
+            .clone()
+            .try_into()
+            .expect("u128 value too large for i128");
         let token_client = TokenClient::new(&env, &token);
         token_client.transfer(&maker, &escrow, &amount_signed);
 
@@ -165,7 +171,7 @@ impl EscrowFactoryInterface for EscrowFactory {
         );
 
         // Return the escrow contract address
-        return escrow
+        return escrow;
     }
 
     fn address_of_escrow_src(env: Env, immutables: Immutables) -> Address {

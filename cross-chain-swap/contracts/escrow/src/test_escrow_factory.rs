@@ -1,37 +1,39 @@
 use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, U256};
 
-use crate::{
-    escrow_factory::EscrowFactory, 
-    escrow_factory::EscrowFactoryClient,
-};
+use crate::{escrow_factory::EscrowFactory, escrow_factory::EscrowFactoryClient};
 
 use base_escrow::Immutables;
 
 // The contract that will be deployed by the deployer contract.
 mod escrow_dst_contract {
-    soroban_sdk::contractimport!(
-        file = "../../target/wasm32v1-none/release/escrow_dst.wasm"
-    );
+    soroban_sdk::contractimport!(file = "../../target/wasm32v1-none/release/escrow_dst.wasm");
 }
 
 // The contract that will be deployed by the deployer contract.
 mod escrow_src_contract {
-    soroban_sdk::contractimport!(
-        file = "../../target/wasm32v1-none/release/escrow_src.wasm"
-    );
+    soroban_sdk::contractimport!(file = "../../target/wasm32v1-none/release/escrow_src.wasm");
 }
-
 
 #[test]
 fn test_address_of_escrow_src() {
     let env = Env::default();
 
-    let escrow_dst_wasm_hash = env.deployer().upload_contract_wasm(escrow_dst_contract::WASM);
-    let escrow_src_wasm_hash = env.deployer().upload_contract_wasm(escrow_src_contract::WASM);
+    let escrow_dst_wasm_hash = env
+        .deployer()
+        .upload_contract_wasm(escrow_dst_contract::WASM);
+    let escrow_src_wasm_hash = env
+        .deployer()
+        .upload_contract_wasm(escrow_src_contract::WASM);
 
-    let xlm_address = Address::from_str(&env, "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI");
+    let xlm_address = Address::from_str(
+        &env,
+        "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI",
+    );
 
-    let contract_id = env.register(EscrowFactory, (escrow_dst_wasm_hash, escrow_src_wasm_hash, xlm_address));
+    let contract_id = env.register(
+        EscrowFactory,
+        (escrow_dst_wasm_hash, escrow_src_wasm_hash, xlm_address),
+    );
     let client = EscrowFactoryClient::new(&env, &contract_id);
 
     let computed_addy = "CAGP76LSLAQ7E274ZTFV7RDFZP42H6HKEDLUQ6IWSADHDHSOG5OGDFT7";
@@ -54,49 +56,60 @@ fn test_address_of_escrow_src() {
 #[test]
 #[should_panic(expected = "InsufficientEscrowBalance")]
 fn test_create_dst_escrow_panic_InsufficientEscrowBalance() {
+    let env = Env::default();
 
-    let env = Env::default();    
+    let escrow_dst_wasm_hash = env
+        .deployer()
+        .upload_contract_wasm(escrow_dst_contract::WASM);
+    let escrow_src_wasm_hash = env
+        .deployer()
+        .upload_contract_wasm(escrow_src_contract::WASM);
 
-    let escrow_dst_wasm_hash = env.deployer().upload_contract_wasm(escrow_dst_contract::WASM);
-    let escrow_src_wasm_hash = env.deployer().upload_contract_wasm(escrow_src_contract::WASM);
+    let xlm_address = Address::from_str(
+        &env,
+        "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI",
+    );
 
-    let xlm_address = Address::from_str(&env, "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI");
-
-    let contract_id = env.register(EscrowFactory, (escrow_dst_wasm_hash, escrow_src_wasm_hash, xlm_address));
+    let contract_id = env.register(
+        EscrowFactory,
+        (escrow_dst_wasm_hash, escrow_src_wasm_hash, xlm_address),
+    );
     let client = EscrowFactoryClient::new(&env, &contract_id);
     // 1893477661 unix time is the start of year 2030
-    let input_src_cancellation_timestamp : U256 = U256::from_u32(&env, 1893477661);
-    
+    let input_src_cancellation_timestamp: U256 = U256::from_u32(&env, 1893477661);
+
     //Define immutables struct values.
-    let address_input_test : Address = Address::from_str(&env, "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI");
-    let u256_input_test : U256 = U256::from_u32(&env, 1);
-    let u128_input_test : u128 = 1;
+    let address_input_test: Address = Address::from_str(
+        &env,
+        "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI",
+    );
+    let u256_input_test: U256 = U256::from_u32(&env, 1);
+    let u128_input_test: u128 = 1;
     let raw_value_max_uint256_bytes = [0xFFu8; 32]; // 32 bytes of 0xFF
     let bytes_32_max: BytesN<32> = BytesN::from_array(&env, &raw_value_max_uint256_bytes);
-    let input_immutables = Immutables { 
-        order_hash: bytes_32_max.clone(), 
-        hashlock: bytes_32_max.clone(), 
-        maker: address_input_test.clone(), 
-        taker: address_input_test.clone(), 
-        token: address_input_test.clone(), 
-        amount: u128_input_test, 
-        safety_deposit: u128_input_test, 
-        timelocks: u256_input_test 
+    let input_immutables = Immutables {
+        order_hash: bytes_32_max.clone(),
+        hashlock: bytes_32_max.clone(),
+        maker: address_input_test.clone(),
+        taker: address_input_test.clone(),
+        token: address_input_test.clone(),
+        amount: u128_input_test,
+        safety_deposit: u128_input_test,
+        timelocks: u256_input_test,
     };
 
     env.mock_all_auths();
-    
+
     // Panic macro for failing revert test case.
     // // Test create_dst_escrow with return address from function call.
-    let test_address_return_output : Address = client.create_dst_escrow(
-        &input_immutables.clone(), 
+    let test_address_return_output: Address = client.create_dst_escrow(
+        &input_immutables.clone(),
         &input_src_cancellation_timestamp.clone(),
-        &u128_input_test
+        &u128_input_test,
     );
 
     // let output_address : Address = Address::from_str(&env, "CBOYRJDYA5LM652UWKZGSSDRJNJYE76URGF4B7HQ3LY5EFWRR3VVENSF");
     // assert_eq!(test_address_return_output, output_address);
-
 }
 
 // Test paths for more coverage:
@@ -106,50 +119,61 @@ fn test_create_dst_escrow_panic_InsufficientEscrowBalance() {
 #[test]
 #[should_panic]
 fn test_create_dst_escrow_panic_storage() {
+    let env = Env::default();
 
-    let env = Env::default();    
+    let escrow_dst_wasm_hash = env
+        .deployer()
+        .upload_contract_wasm(escrow_dst_contract::WASM);
+    let escrow_src_wasm_hash = env
+        .deployer()
+        .upload_contract_wasm(escrow_src_contract::WASM);
 
-    let escrow_dst_wasm_hash = env.deployer().upload_contract_wasm(escrow_dst_contract::WASM);
-    let escrow_src_wasm_hash = env.deployer().upload_contract_wasm(escrow_src_contract::WASM);
+    let xlm_address = Address::from_str(
+        &env,
+        "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI",
+    );
 
-    let xlm_address = Address::from_str(&env, "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI");
-
-    let contract_id = env.register(EscrowFactory, (escrow_dst_wasm_hash, escrow_src_wasm_hash, xlm_address));
+    let contract_id = env.register(
+        EscrowFactory,
+        (escrow_dst_wasm_hash, escrow_src_wasm_hash, xlm_address),
+    );
     let client = EscrowFactoryClient::new(&env, &contract_id);
     // 1893477661 unix time is the start of year 2030
-    let input_src_cancellation_timestamp : U256 = U256::from_u32(&env, 1893477661);
-    
+    let input_src_cancellation_timestamp: U256 = U256::from_u32(&env, 1893477661);
+
     //Define immutables struct values.
-    let address_input_test : Address = Address::from_str(&env, "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI");
-    let u256_input_test_0 : U256 = U256::from_u32(&env, 0);
-    let u256_input_test_2 : U256 = U256::from_u32(&env, 2);
+    let address_input_test: Address = Address::from_str(
+        &env,
+        "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI",
+    );
+    let u256_input_test_0: U256 = U256::from_u32(&env, 0);
+    let u256_input_test_2: U256 = U256::from_u32(&env, 2);
     // let u256_input_test_1 : U256 = U256::from_u32(&env, 1);
-    let u128_input_test_0 : u128 = 0;
+    let u128_input_test_0: u128 = 0;
     // let u128_input_test_1 : u128 = 1;
     let raw_value_max_uint256_bytes = [0xFFu8; 32]; // 32 bytes of 0xFF
     let bytes_32_max: BytesN<32> = BytesN::from_array(&env, &raw_value_max_uint256_bytes);
-    let input_immutables = Immutables { 
-        order_hash: bytes_32_max.clone(), 
-        hashlock: bytes_32_max.clone(), 
-        maker: address_input_test.clone(), 
-        taker: address_input_test.clone(), 
-        token: address_input_test.clone(), 
-        amount: u128_input_test_0, 
-        safety_deposit: u128_input_test_0, 
-        timelocks: u256_input_test_2 
+    let input_immutables = Immutables {
+        order_hash: bytes_32_max.clone(),
+        hashlock: bytes_32_max.clone(),
+        maker: address_input_test.clone(),
+        taker: address_input_test.clone(),
+        token: address_input_test.clone(),
+        amount: u128_input_test_0,
+        safety_deposit: u128_input_test_0,
+        timelocks: u256_input_test_2,
     };
 
     env.mock_all_auths();
-    
+
     // Panic macro for failing revert test case.
     // // Test create_dst_escrow with return address from function call.
-    let test_address_return_output : Address = client.create_dst_escrow(
-        &input_immutables.clone(), 
+    let test_address_return_output: Address = client.create_dst_escrow(
+        &input_immutables.clone(),
         &input_src_cancellation_timestamp.clone(),
-        &u128_input_test_0
+        &u128_input_test_0,
     );
 
     // let output_address : Address = Address::from_str(&env, "CBOYRJDYA5LM652UWKZGSSDRJNJYE76URGF4B7HQ3LY5EFWRR3VVENSF");
     // assert_eq!(test_address_return_output, output_address);
-
 }
