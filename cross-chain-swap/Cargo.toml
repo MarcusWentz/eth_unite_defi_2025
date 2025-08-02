@@ -18,6 +18,7 @@ merkle-storage = { path = "contracts/merkle-storage" }
 base-escrow = { path = "contracts/base-escrow" }
 escrow-dst = { path = "contracts/escrow-dst" } 
 escrow-src = { path = "contracts/escrow-src" } 
+escrow-factory-interface = { path = "contracts/escrow-factory-interface" }
 
 
 [profile.release]

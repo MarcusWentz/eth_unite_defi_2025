@@ -543,12 +543,21 @@ name = "escrow"
 version = "0.0.0"
 dependencies = [
  "base-escrow",
+ "escrow-factory-interface",
  "order",
  "soroban-sdk",
 ]
 
 [[package]]
 name = "escrow-dst"
+version = "0.0.0"
+dependencies = [
+ "base-escrow",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "escrow-factory-interface"
 version = "0.0.0"
 dependencies = [
  "base-escrow",
@@ -1011,6 +1020,7 @@ version = "0.0.0"
 dependencies = [
  "base-escrow",
  "escrow",
+ "escrow-factory-interface",
  "order",
  "order-interface",
  "resolver-interface",

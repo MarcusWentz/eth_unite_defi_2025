@@ -5,6 +5,7 @@ use soroban_sdk::{
 
 use base_escrow::{Immutables};
 use base_escrow::timelocks::{Stage, Timelocks};
+use escrow_factory_interface::EscrowFactoryInterface;
 
 // CONTRACTS
 
@@ -50,9 +51,9 @@ const XLM_ADDRESS: Symbol = symbol_short!("XLM_ADD");
 
 // Contract implementation
 #[contractimpl]
-impl EscrowFactory {
+impl EscrowFactoryInterface for EscrowFactory {
 
-    pub fn __constructor(
+    fn __constructor(
         env: Env, 
         escrow_dst_wasm_hash: BytesN<32>, 
         escrow_src_wasm_hash: BytesN<32>,
@@ -64,8 +65,8 @@ impl EscrowFactory {
     }
 
     // Function for creating destination chain escrow contract
-    pub fn create_dst_escrow(
-        env: &Env,
+    fn create_dst_escrow(
+        env: Env,
         // dst_immutables is modified later, so #[allow(unused_mut)] is used to hide the warning that it doesn't need mut when it does.
         mut dst_immutables: Immutables,
         // Prefixing this with underscore for now, once timelock is implemented we can remove the underscore
@@ -151,8 +152,7 @@ impl EscrowFactory {
         return escrow
     }
 
-    /// @Return
-    pub fn address_of_escrow_src(env: &Env, immutables: Immutables) -> Address {
+    fn address_of_escrow_src(env: Env, immutables: Immutables) -> Address {
         // Extract maker before moving immutables
         let maker = immutables.maker.clone();
         let salt = env.crypto().keccak256(&immutables.to_xdr(&env));

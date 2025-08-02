@@ -1,5 +1,5 @@
 [package]
-name = "escrow"
+name = "escrow-factory-interface"
 version = "0.0.0"
 edition = "2021"
 publish = false
@@ -10,9 +10,7 @@ doctest = false
 
 [dependencies]
 soroban-sdk = { workspace = true }
-order = { path = "../order" }
-base-escrow = { path = "../base-escrow" }
-escrow-factory-interface = { workspace = true }
+base-escrow = { workspace = true }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
