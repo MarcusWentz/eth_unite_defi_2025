@@ -61,10 +61,10 @@ impl TakerTraitsLib {
 
     /// Checks if the order should unwrap WETH and send ETH to taker.
     pub fn unwrap_weth(env: Env, taker_traits: U256) -> bool {
-        u256_bitwise_and(
+        bitand(
             &env,
-            &taker_traits,
-            &Self::unwrap_weth_taker_flag(env.clone()),
+            taker_traits,
+            Self::unwrap_weth_taker_flag(env.clone()),
         )
         .ne(&U256::from_u32(&env, 0))
     }

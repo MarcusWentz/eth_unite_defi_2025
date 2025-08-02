@@ -256,12 +256,12 @@ fn test_unwrap_weth() {
     // Test default (no unwrap)
     let traits_default = TakerTraitsBuilder::new(env.clone()).build();
 
-    // assert!(!TakerTraitsLib::unwrap_weth(env.clone(), traits_default));
+    assert!(!TakerTraitsLib::unwrap_weth(env.clone(), traits_default));
 
-    //     // Test with unwrap WETH flag set
-    //     let traits_unwrap = TakerTraitsBuilder::new(env.clone()).unwrap_weth().build();
+    // Test with unwrap WETH flag set
+    let traits_unwrap = TakerTraitsBuilder::new(env.clone()).unwrap_weth().build();
 
-    //     assert!(TakerTraitsLib::unwrap_weth(env.clone(), traits_unwrap));
+    // assert!(TakerTraitsLib::unwrap_weth(env.clone(), traits_unwrap));
 }
 
 // #[test]
