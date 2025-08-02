@@ -1,7 +1,8 @@
 #![cfg(test)]
 
-use crate::{Immutables, ResolverContract, ResolverContractClient};
+use crate::{ResolverContract, ResolverContractClient};
 use soroban_sdk::{testutils::Address as _, Address, Bytes, BytesN, Env, U256};
+use base_escrow::Immutables;
 
 #[test]
 fn test() {

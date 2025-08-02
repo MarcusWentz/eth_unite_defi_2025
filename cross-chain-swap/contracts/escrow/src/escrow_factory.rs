@@ -2,11 +2,11 @@ use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address, BytesN,
     Env, Symbol, U256,
 };
+use soroban_sdk::token::Client as TokenClient;
 
-use crate::{
-    timelocks::{Stage, Timelocks},
-    Immutables,
-};
+use base_escrow::{Immutables};
+use base_escrow::timelocks::{Stage, Timelocks};
+use escrow_factory_interface::EscrowFactoryInterface;
 
 // CONTRACTS
 
@@ -48,45 +48,55 @@ const ESCROW_CREATED: Symbol = symbol_short!("ESCR");
 // STORAGE SYMBOLS
 const DST_ESCROW_WASM: Symbol = symbol_short!("DST_WASM");
 const SRC_ESCROW_WASM: Symbol = symbol_short!("SRC_WASM");
-const XML_ADDRESS: Symbol = symbol_short!("XML_ADD");
+const XLM_ADDRESS: Symbol = symbol_short!("XLM_ADD");
 
 // Contract implementation
 #[contractimpl]
-impl EscrowFactory {
+impl EscrowFactoryInterface for EscrowFactory {
+
+    fn __constructor(
+        env: Env, 
+        escrow_dst_wasm_hash: BytesN<32>, 
+        escrow_src_wasm_hash: BytesN<32>,
+        xlm_address: Address
+    ) {
+        env.storage().instance().set(&DST_ESCROW_WASM, &escrow_dst_wasm_hash);
+        env.storage().instance().set(&SRC_ESCROW_WASM, &escrow_src_wasm_hash);
+        env.storage().instance().set(&XLM_ADDRESS, &xlm_address);
+    }
+
     // Function for creating destination chain escrow contract
-    pub fn create_dst_escrow(
+    fn create_dst_escrow(
         env: Env,
         // dst_immutables is modified later, so #[allow(unused_mut)] is used to hide the warning that it doesn't need mut when it does.
-        #[allow(unused_mut)] mut dst_immutables: Immutables,
-        // Prefixing this with underscore for now, once timelock is implemented we can remove the underscore
+        mut dst_immutables: Immutables,
         src_cancellation_timestamp: U256,
+        native_token_lock_value: u128,
     ) -> Address {
         // First we instantiate the native amount field
         let mut native_amount = dst_immutables.safety_deposit.clone();
 
-        // Then if the requested token is native XML...
-        if env
+        // Get the native token address for comparison
+        let xlm_address = env
             .storage()
             .instance()
-            .get::<_, Address>(&XML_ADDRESS)
-            .unwrap()
-            == dst_immutables.token
-        {
-            // We increment the native amount by 1
+            .get::<_, Address>(&XLM_ADDRESS)
+            .unwrap();
+
+        // Then if the requested token is native XLM...
+        if xlm_address == dst_immutables.token {
+            // We increment the native amount by the token amount
             native_amount = native_amount + dst_immutables.amount;
         }
 
-        // fetching the msg.value
-        let msg_value: u128 = env
-            .storage()
-            .persistent()
-            .get(&symbol_short!("value"))
-            .unwrap();
+        // Convert both values to U256 for comparison
+        let native_amount_u256 = U256::from_u128(&env, native_amount as u128);
+        let provided_native_amount = U256::from_u128(&env, native_token_lock_value);
 
-        // Making sure native amount does not excede the msg.value
-        if native_amount.lt(&msg_value) {
+        // Making sure native amount exactly matches the provided value (like Solidity's msg.value check)
+        if native_amount_u256 != provided_native_amount {
             panic!("InsufficientEscrowBalance");
-        };
+        }
 
         // Swap out deployment time
         dst_immutables.timelocks = Timelocks::set_deployed_at(
@@ -104,12 +114,14 @@ impl EscrowFactory {
         .gt(&src_cancellation_timestamp)
         {
             panic!("InvalidCreationTime");
-        };
+        }
 
         // Extract values before moving dst_immutables
         let maker = dst_immutables.maker.clone();
         let hashlock = dst_immutables.hashlock.clone();
         let taker = dst_immutables.taker.clone();
+        let token = dst_immutables.token.clone();
+        let amount = dst_immutables.amount.clone();
 
         // Generate salt similar to keccak256(immutables, ESCROW_IMMUTABLES_SIZE)
         // Hash the entire immutables struct to create a deterministic salt
@@ -119,14 +131,26 @@ impl EscrowFactory {
         let wasm_hash = env
             .storage()
             .instance()
-            .get::<_, BytesN<32>>(&DST_ESCROW_WASM)
-            .ok_or(panic!("EscrowWasmNotAvailable"));
+            .get::<_, BytesN<32>>(&DST_ESCROW_WASM);
+
+        if wasm_hash.is_none() {
+            panic!("EscrowWasmNotAvailable");
+        }
+
+        // Require authorization from the maker
+        maker.require_auth();
 
         // Deploying the contract
         let escrow = env
             .deployer()
-            .with_address(maker, salt)
+            .with_address(maker.clone(), salt)
             .deploy_v2(wasm_hash.unwrap(), ());
+
+        // Transfer tokens to escrow (works for both XLM and other tokens in Stellar)
+        // This mirrors the Solidity: IERC20(token).safeTransferFrom(msg.sender, escrow, amount)
+        let amount_signed : i128 = amount.clone().try_into().expect("u128 value too large for i128");
+        let token_client = TokenClient::new(&env, &token);
+        token_client.transfer(&maker, &escrow, &amount_signed);
 
         // We emit the event
         env.events().publish(
@@ -142,26 +166,10 @@ impl EscrowFactory {
         return escrow;
     }
 
-    /// @Return
-    pub fn address_of_escrow_src(env: &Env, immutables: Immutables) -> Address {
+    fn address_of_escrow_src(env: Env, immutables: Immutables) -> Address {
         // Extract maker before moving immutables
         let maker = immutables.maker.clone();
         let salt = env.crypto().keccak256(&immutables.to_xdr(&env));
         env.deployer().with_address(maker, salt).deployed_address()
-    }
-
-    // Function for storing the different kinds of escrow contract wasm
-    pub fn store_escrow_wasm(env: Env, contract_wasm: BytesN<32>, escrow_type: EscrowType) {
-        // Store into different storage allocations depending on the escrow type
-        match escrow_type {
-            EscrowType::Destination => env
-                .storage()
-                .instance()
-                .set(&DST_ESCROW_WASM, &contract_wasm),
-            EscrowType::Source => env
-                .storage()
-                .instance()
-                .set(&SRC_ESCROW_WASM, &contract_wasm),
-        }
     }
 }

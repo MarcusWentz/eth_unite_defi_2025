@@ -14,6 +14,8 @@ resolver-interface = { workspace = true }
 order-interface = { workspace = true }
 escrow = { path = "../escrow" }
 order = { path = "../order" }
+base-escrow = { path = "../base-escrow" }
+escrow-factory-interface = { workspace = true }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
