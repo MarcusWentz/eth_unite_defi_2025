@@ -2,6 +2,7 @@ use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, xdr::ToXdr, Address, BytesN,
     Env, Symbol, U256,
 };
+use soroban_sdk::token::Client as TokenClient;
 
 use base_escrow::{Immutables};
 use base_escrow::timelocks::{Stage, Timelocks};
@@ -69,29 +70,33 @@ impl EscrowFactoryInterface for EscrowFactory {
         env: Env,
         // dst_immutables is modified later, so #[allow(unused_mut)] is used to hide the warning that it doesn't need mut when it does.
         mut dst_immutables: Immutables,
-        // Prefixing this with underscore for now, once timelock is implemented we can remove the underscore
         src_cancellation_timestamp: U256,
         native_token_lock_value: u128,
     ) -> Address {
         // First we instantiate the native amount field
         let mut native_amount = dst_immutables.safety_deposit.clone();
 
-        // // Then if the requested token is native XML...
-        if env
+        // Get the native token address for comparison
+        let xlm_address = env
             .storage()
             .instance()
             .get::<_, Address>(&XLM_ADDRESS)
-            .unwrap()
-            == dst_immutables.token
-        {
-            // We increment the native amount by 1
+            .unwrap();
+
+        // Then if the requested token is native XLM...
+        if xlm_address == dst_immutables.token {
+            // We increment the native amount by the token amount
             native_amount = native_amount + dst_immutables.amount;
         }
 
-        // Making sure native amount does not excede the msg.value
-        if native_amount.lt(&native_token_lock_value) {
+        // Convert both values to U256 for comparison
+        let native_amount_u256 = U256::from_u128(&env, native_amount as u128);
+        let provided_native_amount = U256::from_u128(&env, native_token_lock_value);
+
+        // Making sure native amount exactly matches the provided value (like Solidity's msg.value check)
+        if native_amount_u256 != provided_native_amount {
             panic!("InsufficientEscrowBalance");
-        };
+        }
 
         // Swap out deployment time
         dst_immutables.timelocks = Timelocks::set_deployed_at(
@@ -109,12 +114,14 @@ impl EscrowFactoryInterface for EscrowFactory {
         .gt(&src_cancellation_timestamp)
         {
             panic!("InvalidCreationTime");
-        };
+        }
 
         // Extract values before moving dst_immutables
         let maker = dst_immutables.maker.clone();
         let hashlock = dst_immutables.hashlock.clone();
         let taker = dst_immutables.taker.clone();
+        let token = dst_immutables.token.clone();
+        let amount = dst_immutables.amount.clone();
 
         // Generate salt similar to keccak256(immutables, ESCROW_IMMUTABLES_SIZE)
         // Hash the entire immutables struct to create a deterministic salt
@@ -130,13 +137,20 @@ impl EscrowFactoryInterface for EscrowFactory {
             panic!("EscrowWasmNotAvailable");
         }
 
+        // Require authorization from the maker
         maker.require_auth();
 
         // Deploying the contract
         let escrow = env
             .deployer()
-            .with_address(maker, salt)
+            .with_address(maker.clone(), salt)
             .deploy_v2(wasm_hash.unwrap(), ());
+
+        // Transfer tokens to escrow (works for both XLM and other tokens in Stellar)
+        // This mirrors the Solidity: IERC20(token).safeTransferFrom(msg.sender, escrow, amount)
+        let amount_signed : i128 = amount.clone().try_into().expect("u128 value too large for i128");
+        let token_client = TokenClient::new(&env, &token);
+        token_client.transfer(&maker, &escrow, &amount_signed);
 
         // We emit the event
         env.events().publish(
