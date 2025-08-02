@@ -74,7 +74,7 @@ impl XLMOrders {
         limit_order_protocol: Address,
         access_token: Address,
     ) {
-        env.storage().instance().set(&XML, &xml);
+        env.storage().instance().set(&XLM, &xml);
         env.storage()
             .instance()
             .set(&LIMIT_ORDER_PROTOCOL, &limit_order_protocol);
@@ -245,9 +245,39 @@ impl XLMOrders {
         );
     }
 
-    pub fn cancel_order_by_resolver(env: Env, maker_traits: U256, order_hash: BytesN<32>) {
-        if MakerTraitsLib::is_expired(&env, maker_traits) {
-            panic!("OrderNotExpired")
+    /// Port of Solidity OrderMixin.cancelOrder() function
+    /// Handles both bit invalidator and remaining invalidator cases
+    pub fn cancel_order_mixin(env: Env, maker_traits: U256, order_hash: BytesN<32>) {
+        let sender = env.current_contract_address();
+        let order_hash_clone = order_hash.clone();
+
+        // Check if order uses bit invalidator
+        if MakerTraitsLib::use_bit_invalidator(&env, maker_traits.clone()) {
+            // Handle bit invalidator case
+            let nonce_or_epoch = MakerTraitsLib::nonce_or_epoch(&env, maker_traits.clone());
+
+            // Mass invalidate orders for this nonce/epoch
+            let invalidator_result =
+                Self::mass_invalidate_bit_orders(&env, sender.clone(), nonce_or_epoch, 0);
+
+            // Emit bit invalidator updated event
+            env.events().publish(
+                (symbol_short!("BIT_INV"), symbol_short!("updated")),
+                (
+                    sender.clone(),
+                    U256::from_u128(&env, nonce_or_epoch as u128).shr(8),
+                    invalidator_result,
+                ),
+            );
+        } else {
+            // Handle remaining invalidator case (fully fill the order)
+            Self::fully_fill_remaining_order(&env, sender.clone(), order_hash_clone.clone());
+
+            // Emit order cancelled event
+            env.events().publish(
+                (XLM_ORDER_CANCELLED, symbol_short!("cancelled")),
+                order_hash_clone,
+            );
         }
     }
 
@@ -270,6 +300,45 @@ impl XLMOrders {
         return time_elapsed
             .mul(&U256::from_u32(&env, order.maximum_premium))
             .div(&U256::from_u32(&env, order.auction_duration));
+    }
+
+    /// Mass invalidate bit orders for a given nonce/epoch
+    /// This is equivalent to the Solidity bit invalidator mass invalidation
+    /// Based on BitInvalidatorLib.massInvalidate logic
+    fn mass_invalidate_bit_orders(
+        env: &Env,
+        maker: Address,
+        nonce_or_epoch: u64,
+        series: u64,
+    ) -> U256 {
+        let nonce_u256 = U256::from_u128(env, nonce_or_epoch as u128);
+        let invalidator_slot = nonce_u256.shr(8);
+        let invalidator_bits = U256::from_u32(env, 1).shl(
+            bitand(env, nonce_u256, U256::from_u32(env, 0xff))
+                .to_u128()
+                .unwrap() as u32,
+        );
+        let result = env
+            .storage()
+            .instance()
+            .get::<_, U256>(&symbol_short!("BIT_INV"))
+            .unwrap_or(U256::from_u32(env, 0))
+            .add(&invalidator_bits);
+        env.storage()
+            .instance()
+            .set(&symbol_short!("BIT_INV"), &result);
+        result
+    }
+
+    /// Fully fill a remaining order (mark it as completely filled)
+    /// This is equivalent to RemainingInvalidatorLib.fullyFilled()
+    fn fully_fill_remaining_order(env: &Env, maker: Address, order_hash: BytesN<32>) {
+        // Set the remaining invalidator to type(uint256).max (fully filled)
+        // This is equivalent to RemainingInvalidatorLib.fullyFilled()
+        let fully_filled_invalidator = U256::from_u128(env, u128::MAX);
+        env.storage()
+            .instance()
+            .set(&order_hash, &fully_filled_invalidator);
     }
 }
 
