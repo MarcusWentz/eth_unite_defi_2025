@@ -65,7 +65,7 @@ docker run -d --rm \
   --enable-soroban-rpc > /dev/null || fail "Failed to start Docker container."
 
 echo "Waiting for the network to initialize..."
-sleep 40
+sleep 30
 until curl -s -f -o /dev/null http://localhost:8000/; do
   echo -n "."
   sleep 2
@@ -131,62 +131,55 @@ ALICE_PUBLIC_KEY=$(stellar keys address ${ALICE_IDENTITY_NAME})
 stellar keys generate ${BOB_IDENTITY_NAME} > /dev/null
 BOB_PUBLIC_KEY=$(stellar keys address ${BOB_IDENTITY_NAME})
 
-MAKER_ASSET="0x0000000000000000000000000000000000000000000000000000000000000000"
-TAKER_ASSET="0x0000000000000000000000000000000000000000000000000000000000000000"
+MAKER_ASSET="CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM"
+TAKER_ASSET="CA7N3TLKV27AYBLL6AR7ICJ6C5AMPMCQOGFKI6ZU2FNHRRDN4CNBL5T5"
 
 MAKER_TRAITS="967101221531144175919556390646195146547200"
 
 echo "Deploying contract instance..."
-ORDER='--order "{
-    "maker": "${ALICE_PUBLIC_KEY}",
-    "maker_asset": "${MAKER_ASSET}",
-    "maker_traits": "${MAKER_TRAITS}",
-    "receiver": "${BOB_PUBLIC_KEY}",
-    "salt": "1",
-    "taker_asset": "${TAKER_ASSET}",
-    "taking_amount": "1000000000000000000",
-    "extension": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "interaction": "0x0000000000000000000000000000000000000000000000000000000000000000"
-}" '
+ORDER=$(cat << EOF
+{"maker": "${ALICE_PUBLIC_KEY}", "maker_asset": "${MAKER_ASSET}", "taker_asset": "${TAKER_ASSET}", "maker_traits": "${MAKER_TRAITS}", "receiver": "${BOB_PUBLIC_KEY}", "salt": "1", "taking_amount": "1000000000000000000", "making_amount": "1000000000000000000" }
+EOF
+)
 
 echo "Invoking 'calculate_making_amount' function..."
-INVOKE_RESULT=$(stellar contract invoke --id "${CONTRACT_ID}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- calculate_making_amount ${ORDER})
+INVOKE_RESULT=$(stellar contract invoke --id "${CONTRACT_ID}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- calculate_making_amount --order '${ORDER}')
 success "Invoke result: ${INVOKE_RESULT}"
 
-# 5. EVM Stages
-read -p "Stellar setup complete. Proceed with EVM stages? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    step "Running EVM deployment stages..."
-    # ** CORRECTED SYNTAX: Navigate to the script's directory **
-    cd ${EVM_PROJECT_DIR}/examples/scripts || fail "Could not navigate to the EVM script directory"
+# # 5. EVM Stages
+# read -p "Stellar setup complete. Proceed with EVM stages? (y/n) " -n 1 -r
+# echo
+# if [[ $REPLY =~ ^[Yy]$ ]]; then
+#     step "Running EVM deployment stages..."
+#     # ** CORRECTED SYNTAX: Navigate to the script's directory **
+#     cd ${EVM_PROJECT_DIR}/examples/scripts || fail "Could not navigate to the EVM script directory"
     
-    echo "Running EVM deployment script from $(pwd)..."
-    ./create_order.sh
+#     echo "Running EVM deployment script from $(pwd)..."
+#     ./create_order.sh
     
-    # Navigate back to the project root
-    cd ../../../..
-    success "EVM stages complete."
-fi
+#     # Navigate back to the project root
+#     cd ../../../..
+#     success "EVM stages complete."
+# fi
 
-# 6. Final Cleanup
-step "Cleanup Phase"
-read -p "Do you want to stop the Stellar Docker container? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    if [ "$(docker ps -q -f "name=${DOCKER_CONTAINER_NAME}")" ]; then
-        echo "Stopping Stellar Docker container..."
-        docker stop ${DOCKER_CONTAINER_NAME} > /dev/null
-        success "Container stopped."
-    fi
-fi
+# # 6. Final Cleanup
+# step "Cleanup Phase"
+# read -p "Do you want to stop the Stellar Docker container? (y/n) " -n 1 -r
+# echo
+# if [[ $REPLY =~ ^[Yy]$ ]]; then
+#     if [ "$(docker ps -q -f "name=${DOCKER_CONTAINER_NAME}")" ]; then
+#         echo "Stopping Stellar Docker container..."
+#         docker stop ${DOCKER_CONTAINER_NAME} > /dev/null
+#         success "Container stopped."
+#     fi
+# fi
 
-read -p "Do you want to delete the generated Stellar keys in ~/.config/stellar? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo "Deleting global Stellar config..."
-    rm -rf ~/.config/stellar
-    success "Keys deleted."
-fi
+# read -p "Do you want to delete the generated Stellar keys in ~/.config/stellar? (y/n) " -n 1 -r
+# echo
+# if [[ $REPLY =~ ^[Yy]$ ]]; then
+#     echo "Deleting global Stellar config..."
+#     rm -rf ~/.config/stellar
+#     success "Keys deleted."
+# fi
 
 success "All operations finished."
