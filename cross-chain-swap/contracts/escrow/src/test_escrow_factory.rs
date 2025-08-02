@@ -21,10 +21,20 @@ mod escrow_src_contract {
     );
 }
 
+
 #[test]
 fn test_address_of_escrow_src() {
     let env = Env::default();
-    let computed_addy = "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI";
+
+    let escrow_dst_wasm_hash = env.deployer().upload_contract_wasm(escrow_dst_contract::WASM);
+    let escrow_src_wasm_hash = env.deployer().upload_contract_wasm(escrow_src_contract::WASM);
+
+    let xlm_address = Address::from_str(&env, "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI");
+
+    let contract_id = env.register(EscrowFactory, (escrow_dst_wasm_hash, escrow_src_wasm_hash, xlm_address));
+    let client = EscrowFactoryClient::new(&env, &contract_id);
+
+    let computed_addy = "CAGP76LSLAQ7E274ZTFV7RDFZP42H6HKEDLUQ6IWSADHDHSOG5OGDFT7";
     let pre_computed_address = Address::from_str(&env, computed_addy);
     let immutables = Immutables {
         order_hash: BytesN::from_array(&env, &[0; 32]),
@@ -37,7 +47,7 @@ fn test_address_of_escrow_src() {
         timelocks: U256::from_u32(&env, 0),
     };
 
-    let address = EscrowFactory::address_of_escrow_src(&env, immutables);
+    let address = client.address_of_escrow_src(&immutables);
     assert_eq!(address, pre_computed_address);
 }
 
