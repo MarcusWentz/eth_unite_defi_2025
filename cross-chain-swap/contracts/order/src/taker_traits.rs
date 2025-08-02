@@ -60,7 +60,7 @@ impl TakerTraitsLib {
     }
 
     /// Checks if the order should unwrap WETH and send ETH to taker.
-    pub fn unwrap_weth(env: &Env, taker_traits: U256) -> bool {
+    pub fn unwrap_weth(env: Env, taker_traits: U256) -> bool {
         u256_bitwise_and(
             &env,
             &taker_traits,
