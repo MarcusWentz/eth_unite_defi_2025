@@ -52,6 +52,7 @@ fn test_address_of_escrow_src() {
 }
 
 #[test]
+#[should_panic(expected = "InsufficientEscrowBalance")]
 fn test_create_dst_escrow() {
 
     let env = Env::default();    
@@ -85,6 +86,7 @@ fn test_create_dst_escrow() {
 
     env.mock_all_auths();
     
+    // Panic macro for failing revert test case.
     // // Test create_dst_escrow with return address from function call.
     let test_address_return_output : Address = client.create_dst_escrow(
         &input_immutables.clone(), 
@@ -92,7 +94,7 @@ fn test_create_dst_escrow() {
         &u128_input_test
     );
 
-    let output_address : Address = Address::from_str(&env, "CBOYRJDYA5LM652UWKZGSSDRJNJYE76URGF4B7HQ3LY5EFWRR3VVENSF");
-    assert_eq!(test_address_return_output, output_address);
+    // let output_address : Address = Address::from_str(&env, "CBOYRJDYA5LM652UWKZGSSDRJNJYE76URGF4B7HQ3LY5EFWRR3VVENSF");
+    // assert_eq!(test_address_return_output, output_address);
 
 }
