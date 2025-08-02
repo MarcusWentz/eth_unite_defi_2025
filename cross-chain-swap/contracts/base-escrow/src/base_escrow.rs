@@ -31,7 +31,7 @@ pub trait BaseEscrow {
         env.storage().instance().set(&ACCESS_TOKEN, &access_token);
     }
 
-    // Only take checker
+    // Only take checker&
     fn only_taker(env: Env, immutables: Immutables) -> Result<(), Error> {
         // Make sure that the msg.sender is the correct sender
         if env
