@@ -56,6 +56,7 @@ fn test_address_of_escrow_src() {
 #[test]
 #[should_panic(expected = "InsufficientEscrowBalance")]
 fn test_create_dst_escrow_panic_InsufficientEscrowBalance() {
+    let env = Env::default();
 
     let escrow_dst_wasm_hash = env
         .deployer()
@@ -119,7 +120,6 @@ fn test_create_dst_escrow_panic_InsufficientEscrowBalance() {
 #[test]
 #[should_panic]
 fn test_create_dst_escrow_panic_storage() {
-
     let env = Env::default();    
 
     let escrow_dst_wasm_hash = env.deployer().upload_contract_wasm(escrow_dst_contract::WASM);

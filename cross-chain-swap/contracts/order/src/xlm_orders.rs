@@ -66,9 +66,8 @@ const DATA_HASH_SIZE: u32 = 0x120;
 const EIP712_DOMAIN_TYPEHASH: &str =
     "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
 
-#[contractimpl]
 impl XLMOrders {
-    pub fn __constructor(
+    pub fn constructor(
         env: Env,
         xml: Address,
         limit_order_protocol: Address,

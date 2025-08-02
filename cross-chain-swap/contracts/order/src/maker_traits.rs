@@ -31,7 +31,6 @@ pub struct MakerTraitsLib;
 
 impl ConstTrait for MakerTraitsLib {}
 
-#[contractimpl]
 impl MakerTraitsLib {
     /// Checks if the order has the extension flag set.
     /// If the `HAS_EXTENSION_FLAG` is set in the maker_traits, then the protocol expects that the order has extension(s).
