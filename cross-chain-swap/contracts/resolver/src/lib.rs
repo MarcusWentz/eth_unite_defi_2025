@@ -1,6 +1,7 @@
 #![no_std]
 
-use escrow::{escrow_factory::EscrowFactory, timelocks::Timelocks, Immutables};
+use escrow::escrow_factory::EscrowFactory;
+use base_escrow::{Immutables, timelocks::Timelocks};
 use order_interface::Order;
 use resolver_interface::ResolverInterface;
 use soroban_sdk::{

@@ -4,9 +4,24 @@ use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, U256};
 
 use crate::{
     escrow_factory::EscrowFactory, 
-    escrow_factory::EscrowType, 
     escrow_factory::EscrowFactoryClient,
-    Immutables};
+};
+
+use base_escrow::Immutables;
+
+// The contract that will be deployed by the deployer contract.
+mod escrow_dst_contract {
+    soroban_sdk::contractimport!(
+        file = "../../target/wasm32v1-none/release/escrow_dst.wasm"
+    );
+}
+
+// The contract that will be deployed by the deployer contract.
+mod escrow_src_contract {
+    soroban_sdk::contractimport!(
+        file = "../../target/wasm32v1-none/release/escrow_src.wasm"
+    );
+}
 
 #[test]
 fn test_address_of_escrow_src() {
@@ -28,44 +43,18 @@ fn test_address_of_escrow_src() {
     assert_eq!(address, pre_computed_address);
 }
 
-
-#[test]
-fn test_store_escrow_wasm_escrowType_source() {
-
-    let env = Env::default();    
-    let contract_id = env.register(EscrowFactory, ());
-    let client = EscrowFactoryClient::new(&env, &contract_id);
-
-    let escrow_type_status: EscrowType = EscrowType::Source;
-    let raw_value_max_uint256_bytes = [0xFFu8; 32]; // 32 bytes of 0xFF
-    let bytes_32_max: BytesN<32> = BytesN::from_array(&env, &raw_value_max_uint256_bytes);
-    
-    // Test source path.
-    client.store_escrow_wasm(&bytes_32_max, &escrow_type_status);
-}
-
-#[test]
-fn test_store_escrow_wasm_escrowType_destination() {
-
-    let env = Env::default();    
-    let contract_id = env.register(EscrowFactory, ());
-    let client = EscrowFactoryClient::new(&env, &contract_id);
-
-    let escrow_type_status: EscrowType = EscrowType::Destination;
-    let raw_value_max_uint256_bytes = [0xFFu8; 32]; // 32 bytes of 0xFF
-    let bytes_32_max: BytesN<32> = BytesN::from_array(&env, &raw_value_max_uint256_bytes);
-    
-    // Test destination path.
-    client.store_escrow_wasm(&bytes_32_max, &escrow_type_status);
-}
-
 #[test]
 fn test_create_dst_escrow() {
 
     let env = Env::default();    
-    let contract_id = env.register(EscrowFactory, ());
-    let client = EscrowFactoryClient::new(&env, &contract_id);
 
+    let escrow_dst_wasm_hash = env.deployer().upload_contract_wasm(escrow_dst_contract::WASM);
+    let escrow_src_wasm_hash = env.deployer().upload_contract_wasm(escrow_src_contract::WASM);
+
+    let xlm_address = Address::from_str(&env, "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI");
+
+    let contract_id = env.register(EscrowFactory, (escrow_dst_wasm_hash, escrow_src_wasm_hash, xlm_address));
+    let client = EscrowFactoryClient::new(&env, &contract_id);
     // 1893477661 unix time is the start of year 2030
     let input_src_cancellation_timestamp : U256 = U256::from_u32(&env, 1893477661);
     
@@ -75,7 +64,7 @@ fn test_create_dst_escrow() {
     let u128_input_test : u128 = 1;
     let raw_value_max_uint256_bytes = [0xFFu8; 32]; // 32 bytes of 0xFF
     let bytes_32_max: BytesN<32> = BytesN::from_array(&env, &raw_value_max_uint256_bytes);
-    let input_immutables : Immutables = Immutables { 
+    let input_immutables = Immutables { 
         order_hash: bytes_32_max.clone(), 
         hashlock: bytes_32_max.clone(), 
         maker: address_input_test.clone(), 
@@ -85,13 +74,17 @@ fn test_create_dst_escrow() {
         safety_deposit: u128_input_test, 
         timelocks: u256_input_test 
     };
-    
-    // Test create_dst_escrow with return address from function call.
-    let test_address_return_output : Address = client.create_dst_escrow(
-        &input_immutables, 
-        &input_src_cancellation_timestamp);
 
-    // let output_address : Address = Address::from_str(&env, "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI");
-    // assert_eq!(test_address_return_output, output_address);
+    env.mock_all_auths();
+    
+    // // Test create_dst_escrow with return address from function call.
+    let test_address_return_output : Address = client.create_dst_escrow(
+        &input_immutables.clone(), 
+        &input_src_cancellation_timestamp.clone(),
+        &u128_input_test
+    );
+
+    let output_address : Address = Address::from_str(&env, "CBOYRJDYA5LM652UWKZGSSDRJNJYE76URGF4B7HQ3LY5EFWRR3VVENSF");
+    assert_eq!(test_address_return_output, output_address);
 
 }

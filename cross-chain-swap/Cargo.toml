@@ -15,6 +15,9 @@ escrow = { path = "contracts/escrow" }
 dutch-auction-interface = { path = "contracts/dutch-auction-interface" }
 utils = { path = "utils" }
 merkle-storage = { path = "contracts/merkle-storage" }
+base-escrow = { path = "contracts/base-escrow" }
+escrow-dst = { path = "contracts/escrow-dst" } 
+escrow-src = { path = "contracts/escrow-src" } 
 
 
 [profile.release]
