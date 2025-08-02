@@ -139,7 +139,7 @@ impl EscrowFactory {
         );
 
         // Return the escrow contract address
-        return escrow
+        return escrow;
     }
 
     /// @Return
