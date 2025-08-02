@@ -60,7 +60,7 @@ impl EscrowFactory {
         #[allow(unused_mut)] mut dst_immutables: Immutables,
         // Prefixing this with underscore for now, once timelock is implemented we can remove the underscore
         src_cancellation_timestamp: U256,
-    ) -> Result<Address, Error> {
+    ) -> Address {
         // First we instantiate the native amount field
         let mut native_amount = dst_immutables.safety_deposit.clone();
 
@@ -85,7 +85,7 @@ impl EscrowFactory {
 
         // Making sure native amount does not excede the msg.value
         if native_amount.lt(&msg_value) {
-            return Err(Error::InsufficientEscrowBalance);
+            panic!("InsufficientEscrowBalance");
         };
 
         // Swap out deployment time
@@ -103,7 +103,7 @@ impl EscrowFactory {
         )
         .gt(&src_cancellation_timestamp)
         {
-            return Err(Error::InvalidCreationTime);
+            panic!("InvalidCreationTime");
         };
 
         // Extract values before moving dst_immutables
@@ -120,13 +120,13 @@ impl EscrowFactory {
             .storage()
             .instance()
             .get::<_, BytesN<32>>(&DST_ESCROW_WASM)
-            .ok_or(Error::EscrowWasmNotAvailable)?;
+            .ok_or(panic!("EscrowWasmNotAvailable"));
 
         // Deploying the contract
         let escrow = env
             .deployer()
             .with_address(maker, salt)
-            .deploy_v2(wasm_hash, ());
+            .deploy_v2(wasm_hash.unwrap(), ());
 
         // We emit the event
         env.events().publish(
@@ -139,7 +139,7 @@ impl EscrowFactory {
         );
 
         // Return the escrow contract address
-        Ok(escrow)
+        return escrow
     }
 
     /// @Return

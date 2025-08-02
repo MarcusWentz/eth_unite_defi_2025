@@ -86,10 +86,10 @@ fn test_create_dst_escrow() {
         timelocks: u256_input_test 
     };
     
-    // // Test create_dst_escrow with return address from function call.
-    // let test_address_return_output : Address = client.create_dst_escrow(
-    //     &input_immutables, 
-    //     &input_src_cancellation_timestamp);
+    // Test create_dst_escrow with return address from function call.
+    let test_address_return_output : Address = client.create_dst_escrow(
+        &input_immutables, 
+        &input_src_cancellation_timestamp);
 
     // let output_address : Address = Address::from_str(&env, "CCJNI7JJQF23TO3PVBIN3V4R66EWBD3AFNQ6EL4POPSXHZT4IYXIQ5KI");
     // assert_eq!(test_address_return_output, output_address);
