@@ -1,8 +1,8 @@
 #![no_std]
 use soroban_sdk::{contractclient, Address, Bytes, BytesN, Env, Error, U256};
 
-use order_interface::Order;
 use base_escrow::Immutables as EscrowImmutables;
+use order_interface::Order;
 
 /// Interface for the sample implementation of a Resolver contract for cross-chain swap.
 #[contractclient(name = "ResolverInterfaceClient")]

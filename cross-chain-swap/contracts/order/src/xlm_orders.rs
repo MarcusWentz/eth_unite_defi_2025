@@ -46,7 +46,7 @@ pub enum DynamicField {
 // EVENTS SYMBOLS
 const XLM_DEPOSITED: Symbol = symbol_short!("XLM_DEP");
 const XLM_ORDER_CANCELLED: Symbol = symbol_short!("XLM_OC");
-const XLM_ORDER_CANCELLED_BY_THIRD_PARTY: Symbol = symbol_short!("XLM_OC3");
+const _XLM_ORDER_CANCELLED_BY_THIRD_PARTY: Symbol = symbol_short!("XLM_OC3");
 
 // STORAGE SYMBOLS
 const LIMIT_ORDER_PROTOCOL: Symbol = symbol_short!("LIM_ORP");
@@ -54,12 +54,12 @@ const XLM: Symbol = symbol_short!("XLM");
 const ACCESS_TOKEN: Symbol = symbol_short!("ACC_TOK");
 
 // Consts
-const PREMIUM_BASE: u32 = 1_000;
-const CANCEL_GAS_LOWER_BOUND: u32 = 30_000;
+const _PREMIUM_BASE: u32 = 1_000;
+const _CANCEL_GAS_LOWER_BOUND: u32 = 30_000;
 
 // OrderLib constants
 const LIMIT_ORDER_TYPEHASH: &str = "Order(uint256 salt,address maker,address receiver,address makerAsset,address takerAsset,uint256 makingAmount,uint256 takingAmount,uint256 makerTraits)";
-const ORDER_STRUCT_SIZE: u32 = 0x100;
+const _ORDER_STRUCT_SIZE: u32 = 0x100;
 const DATA_HASH_SIZE: u32 = 0x120;
 
 // EIP-712 constants
@@ -207,7 +207,7 @@ impl XLMOrders {
         order_hash
     }
 
-    pub fn cancel_order(env: Env, maker_trairs: U256, order_hash: BytesN<32>) {
+    pub fn cancel_order(env: Env, _maker_trairs: U256, order_hash: BytesN<32>) {
         if env
             .storage()
             .instance()
@@ -281,7 +281,7 @@ impl XLMOrders {
         }
     }
 
-    fn get_current_premium_multiplier(
+    fn _get_current_premium_multiplier(
         env: Env,
         order: XLMOrdersArr,
         expiration_time: U256,
@@ -307,12 +307,12 @@ impl XLMOrders {
     /// Based on BitInvalidatorLib.massInvalidate logic
     fn mass_invalidate_bit_orders(
         env: &Env,
-        maker: Address,
+        _maker: Address,
         nonce_or_epoch: u64,
-        series: u64,
+        _series: u64,
     ) -> U256 {
         let nonce_u256 = U256::from_u128(env, nonce_or_epoch as u128);
-        let invalidator_slot = nonce_u256.shr(8);
+        let _invalidator_slot = nonce_u256.shr(8);
         let invalidator_bits = U256::from_u32(env, 1).shl(
             bitand(env, nonce_u256, U256::from_u32(env, 0xff))
                 .to_u128()
@@ -332,7 +332,7 @@ impl XLMOrders {
 
     /// Fully fill a remaining order (mark it as completely filled)
     /// This is equivalent to RemainingInvalidatorLib.fullyFilled()
-    fn fully_fill_remaining_order(env: &Env, maker: Address, order_hash: BytesN<32>) {
+    fn fully_fill_remaining_order(env: &Env, _maker: Address, order_hash: BytesN<32>) {
         // Set the remaining invalidator to type(uint256).max (fully filled)
         // This is equivalent to RemainingInvalidatorLib.fullyFilled()
         let fully_filled_invalidator = U256::from_u128(env, u128::MAX);
@@ -350,11 +350,11 @@ pub fn is_valid_extension(env: Env, order: Order, extension: Bytes) -> (bool, Va
         if bitand(
             &env,
             U256::from_be_bytes(&env, &env.crypto().keccak256(&extension).to_xdr(&env)),
-            U256::from_u128(&env, u128::MAX).shr(128 - 160),
+            U256::from_u128(&env, u128::MAX),
         ) != bitand(
             &env,
             order.salt,
-            U256::from_u128(&env, u128::MAX).shr(128 - 160),
+            U256::from_u128(&env, u128::MAX),
         ) {
             return (false, ValidationResult::InvalidExtensionHash);
         }
@@ -366,7 +366,7 @@ pub fn is_valid_extension(env: Env, order: Order, extension: Bytes) -> (bool, Va
     (true, ValidationResult::Success)
 }
 
-pub fn post_interaction_target_and_data(env: &Env, order: &Order, extension: &Bytes) -> Bytes {
+pub fn post_interaction_target_and_data(env: &Env, _order: &Order, extension: &Bytes) -> Bytes {
     get_extension(env, extension, DynamicField::PostInteractionData)
 }
 

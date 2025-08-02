@@ -7,8 +7,7 @@ use soroban_sdk::{log, testutils::Address as _, Address, Env, U256};
 // use crate::taker_trait::{MakerTraitsBuilder, MakerTraitsLib};
 // use crate::taker_traits;
 
-
-use crate::taker_traits::{TakerTraitsBuilder,TakerTraitsLib};
+use crate::taker_traits::{TakerTraitsBuilder, TakerTraitsLib};
 
 fn create_test_env() -> Env {
     Env::default()
@@ -250,7 +249,6 @@ fn create_test_address(env: &Env) -> Address {
 
 #[test]
 fn test_unwrap_weth() {
-
     let env = create_test_env();
 
     // Test default (no unwrap)

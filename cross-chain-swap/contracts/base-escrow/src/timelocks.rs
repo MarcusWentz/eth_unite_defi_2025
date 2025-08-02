@@ -1,4 +1,4 @@
-use soroban_sdk::{contract, contractimpl, contracttype, Env, U256, Bytes};
+use soroban_sdk::{contract, contractimpl, contracttype, Bytes, Env, U256};
 
 #[repr(u32)]
 #[derive(Copy, Clone)]
@@ -21,7 +21,6 @@ const DEPLOYED_AT_OFFSET: u32 = 224;
 // Contract implementation
 #[contractimpl]
 impl Timelocks {
-
     pub fn set_deployed_at(env: Env, timelocks: U256, value: U256) -> U256 {
         // Convert `timelocks` (U256) to `Bytes`, then copy into [u8; 32]
         let bytes_dyn = timelocks.to_be_bytes();

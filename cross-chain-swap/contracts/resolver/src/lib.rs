@@ -1,13 +1,13 @@
 #![no_std]
 
-use base_escrow::{Immutables, timelocks::Timelocks};
+use base_escrow::{timelocks::Timelocks, Immutables};
+use escrow_factory_interface::EscrowFactoryClient;
 use order_interface::Order;
 use resolver_interface::ResolverInterface;
 use soroban_sdk::{
     contract, contractimpl, log, symbol_short, vec, Address, Bytes, BytesN, Env, Error, IntoVal,
-    Symbol, U256
+    Symbol, U256,
 };
-use escrow_factory_interface::EscrowFactoryClient;
 
 #[contract]
 pub struct ResolverContract;
@@ -52,7 +52,11 @@ impl ResolverInterface for ResolverContract {
         immutables.timelocks =
             Timelocks::set_deployed_at(env.clone(), immutables.timelocks, timestamp);
 
-        let escrow_factory = env.storage().instance().get(&ESCROW_FACTORY_ADDRESS).unwrap();
+        let escrow_factory = env
+            .storage()
+            .instance()
+            .get(&ESCROW_FACTORY_ADDRESS)
+            .unwrap();
         let escrow_factory_client = EscrowFactoryClient::new(&env, &escrow_factory);
 
         let address = escrow_factory_client.address_of_escrow_src(&immutables);

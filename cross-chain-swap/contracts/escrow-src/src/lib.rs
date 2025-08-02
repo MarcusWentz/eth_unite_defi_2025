@@ -1,8 +1,10 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, symbol_short, token::TokenClient, Address, Env, BytesN, Symbol};
+use soroban_sdk::{
+    contract, contractimpl, symbol_short, token::TokenClient, Address, BytesN, Env, Symbol,
+};
 
-use base_escrow::{base_escrow::BaseEscrow, Immutables};
 use base_escrow::timelocks::{Stage, Timelocks};
+use base_escrow::{base_escrow::BaseEscrow, Immutables};
 
 #[contract]
 pub struct EscrowSrc;
@@ -55,12 +57,7 @@ impl EscrowSrc {
         );
     }
 
-    fn withdraw_to_priv(
-        env: Env,
-        secret: BytesN<32>,
-        target: Address,
-        immutables: Immutables,
-    ) {
+    fn withdraw_to_priv(env: Env, secret: BytesN<32>, target: Address, immutables: Immutables) {
         let res = Self::validate_immutables(env.clone(), immutables.clone());
         if let Err(e) = res {
             panic!("Invalid immutables");
