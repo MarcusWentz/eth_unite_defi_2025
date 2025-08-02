@@ -350,11 +350,8 @@ pub fn is_valid_extension(env: Env, order: Order, extension: Bytes) -> (bool, Va
             &env,
             U256::from_be_bytes(&env, &env.crypto().keccak256(&extension).to_xdr(&env)),
             U256::from_u128(&env, u128::MAX),
-        ) != bitand(
-            &env,
-            order.salt,
-            U256::from_u128(&env, u128::MAX),
-        ) {
+        ) != bitand(&env, order.salt, U256::from_u128(&env, u128::MAX))
+        {
             return (false, ValidationResult::InvalidExtensionHash);
         }
     } else {
