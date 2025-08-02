@@ -1,4 +1,5 @@
 use crate::maker_traits::MakerTraitsLib;
+use base_escrow::base_escrow::BaseEscrow;
 use order_interface::Order;
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
@@ -9,6 +10,8 @@ use utils::math::bitand;
 
 #[contract]
 pub struct XLMOrders;
+
+impl BaseEscrow for XLMOrders {}
 
 #[derive(Eq, PartialEq)]
 #[contracttype]
@@ -47,7 +50,7 @@ const XLM_ORDER_CANCELLED_BY_THIRD_PARTY: Symbol = symbol_short!("XLM_OC3");
 
 // STORAGE SYMBOLS
 const LIMIT_ORDER_PROTOCOL: Symbol = symbol_short!("LIM_ORP");
-const XML: Symbol = symbol_short!("XML");
+const XLM: Symbol = symbol_short!("XLM");
 const ACCESS_TOKEN: Symbol = symbol_short!("ACC_TOK");
 
 // Consts
@@ -182,6 +185,19 @@ impl XLMOrders {
 
         env.storage().instance().set(&order_hash, &order_data);
 
+        Self::uni_transfer(
+            env.clone(),
+            env.storage().instance().get(&XLM).unwrap(),
+            env.storage()
+                .instance()
+                .get(&symbol_short!("sender"))
+                .unwrap(),
+            env.storage()
+                .instance()
+                .get(&symbol_short!("value"))
+                .unwrap(),
+        );
+
         env.events().publish(
             (XLM_DEPOSITED, symbol_short!("Deposited")),
             env.storage()
@@ -189,6 +205,71 @@ impl XLMOrders {
                 .get::<_, Address>(&symbol_short!("value")),
         );
         order_hash
+    }
+
+    pub fn cancel_order(env: Env, maker_trairs: U256, order_hash: BytesN<32>) {
+        if env
+            .storage()
+            .instance()
+            .get::<_, XLMOrdersArr>(&order_hash)
+            .unwrap()
+            .maker
+            != env
+                .storage()
+                .instance()
+                .get(&symbol_short!("sender"))
+                .unwrap()
+        {
+            panic!("InvalidOrder")
+        }
+        let refund_xlm_amount = env
+            .storage()
+            .instance()
+            .get::<_, XLMOrdersArr>(&order_hash)
+            .unwrap()
+            .balance as i128;
+
+        Self::uni_transfer(
+            env.clone(),
+            env.storage().instance().get(&XLM).unwrap(),
+            env.storage()
+                .instance()
+                .get(&symbol_short!("sender"))
+                .unwrap(),
+            refund_xlm_amount,
+        );
+
+        env.events().publish(
+            (XLM_ORDER_CANCELLED, symbol_short!("canceled")),
+            (order_hash, refund_xlm_amount),
+        );
+    }
+
+    pub fn cancel_order_by_resolver(env: Env, maker_traits: U256, order_hash: BytesN<32>) {
+        if MakerTraitsLib::is_expired(&env, maker_traits) {
+            panic!("OrderNotExpired")
+        }
+    }
+
+    fn get_current_premium_multiplier(
+        env: Env,
+        order: XLMOrdersArr,
+        expiration_time: U256,
+    ) -> U256 {
+        let timestamp = U256::from_u128(&env, env.ledger().timestamp() as u128);
+        if timestamp.le(&expiration_time) {
+            return U256::from_u32(&env, 0);
+        }
+
+        let time_elapsed = timestamp.sub(&expiration_time);
+
+        if time_elapsed.ge(&U256::from_u32(&env, order.auction_duration)) {
+            return U256::from_u32(&env, order.maximum_premium);
+        }
+
+        return time_elapsed
+            .mul(&U256::from_u32(&env, order.maximum_premium))
+            .div(&U256::from_u32(&env, order.auction_duration));
     }
 }
 
