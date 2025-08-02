@@ -59,7 +59,7 @@ impl EscrowFactory {
         // dst_immutables is modified later, so #[allow(unused_mut)] is used to hide the warning that it doesn't need mut when it does.
         #[allow(unused_mut)] mut dst_immutables: Immutables,
         // Prefixing this with underscore for now, once timelock is implemented we can remove the underscore
-        src_cancellaqtion_timestamp: U256,
+        src_cancellation_timestamp: U256,
     ) -> Result<Address, Error> {
         // First we instantiate the native amount field
         let mut native_amount = dst_immutables.safety_deposit.clone();
@@ -101,7 +101,7 @@ impl EscrowFactory {
             dst_immutables.timelocks.clone(),
             Stage::DstCancellation,
         )
-        .gt(&src_cancellaqtion_timestamp)
+        .gt(&src_cancellation_timestamp)
         {
             return Err(Error::InvalidCreationTime);
         };
