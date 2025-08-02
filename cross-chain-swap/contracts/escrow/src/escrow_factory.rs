@@ -3,10 +3,8 @@ use soroban_sdk::{
     Env, Symbol, U256,
 };
 
-use crate::{
-    timelocks::{Stage, Timelocks},
-    Immutables,
-};
+use base_escrow::{Immutables};
+use base_escrow::timelocks::{Stage, Timelocks};
 
 // CONTRACTS
 
@@ -48,27 +46,40 @@ const ESCROW_CREATED: Symbol = symbol_short!("ESCR");
 // STORAGE SYMBOLS
 const DST_ESCROW_WASM: Symbol = symbol_short!("DST_WASM");
 const SRC_ESCROW_WASM: Symbol = symbol_short!("SRC_WASM");
-const XML_ADDRESS: Symbol = symbol_short!("XML_ADD");
+const XLM_ADDRESS: Symbol = symbol_short!("XLM_ADD");
 
 // Contract implementation
 #[contractimpl]
 impl EscrowFactory {
+
+    pub fn __constructor(
+        env: Env, 
+        escrow_dst_wasm_hash: BytesN<32>, 
+        escrow_src_wasm_hash: BytesN<32>,
+        xlm_address: Address
+    ) {
+        env.storage().instance().set(&DST_ESCROW_WASM, &escrow_dst_wasm_hash);
+        env.storage().instance().set(&SRC_ESCROW_WASM, &escrow_src_wasm_hash);
+        env.storage().instance().set(&XLM_ADDRESS, &xlm_address);
+    }
+
     // Function for creating destination chain escrow contract
     pub fn create_dst_escrow(
-        env: Env,
+        env: &Env,
         // dst_immutables is modified later, so #[allow(unused_mut)] is used to hide the warning that it doesn't need mut when it does.
-        #[allow(unused_mut)] mut dst_immutables: Immutables,
+        mut dst_immutables: Immutables,
         // Prefixing this with underscore for now, once timelock is implemented we can remove the underscore
         src_cancellation_timestamp: U256,
+        native_token_lock_value: u128,
     ) -> Address {
         // First we instantiate the native amount field
         let mut native_amount = dst_immutables.safety_deposit.clone();
 
-        // Then if the requested token is native XML...
+        // // Then if the requested token is native XML...
         if env
             .storage()
             .instance()
-            .get::<_, Address>(&XML_ADDRESS)
+            .get::<_, Address>(&XLM_ADDRESS)
             .unwrap()
             == dst_immutables.token
         {
@@ -76,15 +87,8 @@ impl EscrowFactory {
             native_amount = native_amount + dst_immutables.amount;
         }
 
-        // fetching the msg.value
-        let msg_value: u128 = env
-            .storage()
-            .persistent()
-            .get(&symbol_short!("value"))
-            .unwrap();
-
         // Making sure native amount does not excede the msg.value
-        if native_amount.lt(&msg_value) {
+        if native_amount.lt(&native_token_lock_value) {
             panic!("InsufficientEscrowBalance");
         };
 
@@ -119,8 +123,13 @@ impl EscrowFactory {
         let wasm_hash = env
             .storage()
             .instance()
-            .get::<_, BytesN<32>>(&DST_ESCROW_WASM)
-            .ok_or(panic!("EscrowWasmNotAvailable"));
+            .get::<_, BytesN<32>>(&DST_ESCROW_WASM);
+
+        if wasm_hash.is_none() {
+            panic!("EscrowWasmNotAvailable");
+        }
+
+        maker.require_auth();
 
         // Deploying the contract
         let escrow = env
@@ -148,20 +157,5 @@ impl EscrowFactory {
         let maker = immutables.maker.clone();
         let salt = env.crypto().keccak256(&immutables.to_xdr(&env));
         env.deployer().with_address(maker, salt).deployed_address()
-    }
-
-    // Function for storing the different kinds of escrow contract wasm
-    pub fn store_escrow_wasm(env: Env, contract_wasm: BytesN<32>, escrow_type: EscrowType) {
-        // Store into different storage allocations depending on the escrow type
-        match escrow_type {
-            EscrowType::Destination => env
-                .storage()
-                .instance()
-                .set(&DST_ESCROW_WASM, &contract_wasm),
-            EscrowType::Source => env
-                .storage()
-                .instance()
-                .set(&SRC_ESCROW_WASM, &contract_wasm),
-        }
     }
 }

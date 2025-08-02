@@ -163,6 +163,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
+name = "base-escrow"
+version = "0.0.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "base16ct"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -535,7 +542,24 @@ checksum = "2bfcf67fea2815c2fc3b90873fae90957be12ff417335dfadc7f52927feb03b2"
 name = "escrow"
 version = "0.0.0"
 dependencies = [
+ "base-escrow",
  "order",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "escrow-dst"
+version = "0.0.0"
+dependencies = [
+ "base-escrow",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "escrow-src"
+version = "0.0.0"
+dependencies = [
+ "base-escrow",
  "soroban-sdk",
 ]
 
@@ -985,6 +1009,7 @@ dependencies = [
 name = "resolver"
 version = "0.0.0"
 dependencies = [
+ "base-escrow",
  "escrow",
  "order",
  "order-interface",
@@ -996,6 +1021,7 @@ dependencies = [
 name = "resolver-interface"
 version = "0.0.0"
 dependencies = [
+ "base-escrow",
  "escrow",
  "order-interface",
  "soroban-sdk",
