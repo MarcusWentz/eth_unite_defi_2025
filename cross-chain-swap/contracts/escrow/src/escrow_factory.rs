@@ -96,6 +96,8 @@ impl EscrowFactoryInterface for EscrowFactory {
         // Making sure native amount exactly matches the provided value (like Solidity's msg.value check)
         if native_amount_u256 != provided_native_amount {
             panic!("InsufficientEscrowBalance");
+            // panic!("debug native_amount_u256: {:?}", native_amount_u256);
+            // panic!("debug provided_native_amount: {:?}", provided_native_amount);
         }
 
         // Swap out deployment time
