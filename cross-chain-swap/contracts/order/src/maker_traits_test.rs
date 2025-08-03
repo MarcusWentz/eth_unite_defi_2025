@@ -1,8 +1,8 @@
 #![cfg(test)]
 
-use core::fmt::Debug;
 
-use soroban_sdk::{log, testutils::Address as _, Address, Env, U256};
+
+use soroban_sdk::{testutils::Address as _, Address, Env};
 
 use crate::maker_traits::{MakerTraitsBuilder, MakerTraitsLib};
 
