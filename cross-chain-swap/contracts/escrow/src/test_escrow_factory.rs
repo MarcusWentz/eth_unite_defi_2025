@@ -203,9 +203,9 @@ fn test_create_dst_escrow_with_different_timestamps() {
     };
 
     // Test with different timestamps
-    let timestamp1 = U256::from_u32(&env, 1000);           // Past
-    let timestamp2 = U256::from_u32(&env, 1893477661);     // Year 2030
-    let timestamp3 = U256::from_u32(&env, 4102444800);     // Year 2100
+    let timestamp1 = U256::from_u32(&env, 1000); // Past
+    let timestamp2 = U256::from_u32(&env, 1893477661); // Year 2030
+    let timestamp3 = U256::from_u32(&env, 4102444800); // Year 2100
 
     // Verify timestamps are valid
     assert!(timestamp1 > U256::from_u32(&env, 0));
@@ -250,7 +250,13 @@ fn test_escrow_factory_constructor() {
 
     let address = client.address_of_escrow_src(&immutables);
     // Verify that an address was generated (not zero address)
-    assert_ne!(address, Address::from_str(&env, "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"));
+    assert_ne!(
+        address,
+        Address::from_str(
+            &env,
+            "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"
+        )
+    );
 }
 
 #[test]
@@ -408,7 +414,13 @@ fn test_xlm_address_validation() {
     );
 
     // Verify XLM address is valid
-    assert_ne!(xlm_address, Address::from_str(&env, "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"));
+    assert_ne!(
+        xlm_address,
+        Address::from_str(
+            &env,
+            "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"
+        )
+    );
 }
 
 // Test paths for more coverage:

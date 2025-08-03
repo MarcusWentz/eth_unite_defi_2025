@@ -5,7 +5,11 @@ use escrow_factory_interface::EscrowFactoryClient;
 use order_interface::{AuctionDetails, Order, OrderClient};
 use resolver_interface::ResolverInterface;
 use soroban_sdk::{
-    contract, contractimpl, log, symbol_short, token::TokenClient, vec, xdr::{FromXdr, ToXdr}, Address, Bytes, BytesN, Env, Error, IntoVal, Symbol, U256
+    contract, contractimpl, symbol_short,
+    token::TokenClient,
+    vec,
+    xdr::{FromXdr, ToXdr},
+    Address, Bytes, BytesN, Env, IntoVal, Symbol, U256,
 };
 use utils::math;
 
@@ -65,12 +69,14 @@ impl ResolverInterface for ResolverContract {
         let token_client = TokenClient::new(&env, &order.maker_asset);
 
         let safty_deposit_amount = immutables_mem.safety_deposit.try_into().unwrap();
-        let transfer_result = token_client.try_transfer(&order.maker, &address, &safty_deposit_amount);
+        let transfer_result =
+            token_client.try_transfer(&order.maker, &address, &safty_deposit_amount);
         if transfer_result.is_err() {
             panic!("Failed to transfer safety deposit");
         }
 
-        let updated_taker_traits = math::bit_or(&env, taker_traits, U256::from_u32(&env, 1).shl(251));
+        let updated_taker_traits =
+            math::bit_or(&env, taker_traits, U256::from_u32(&env, 1).shl(251));
 
         let mut args_mem = args.clone();
         let address_bytes = Bytes::from_xdr(&env, &address.clone().to_xdr(&env));

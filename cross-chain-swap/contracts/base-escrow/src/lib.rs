@@ -19,3 +19,6 @@ pub struct Immutables {
 }
 
 mod test_timelock;
+
+#[cfg(test)]
+mod test_authentication;

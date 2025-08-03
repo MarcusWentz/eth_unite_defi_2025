@@ -1,7 +1,5 @@
 #![cfg(test)]
 
-
-
 use soroban_sdk::Env;
 
 // use crate::taker_trait::{MakerTraitsBuilder, MakerTraitsLib};
@@ -12,8 +10,6 @@ use crate::taker_traits::{TakerTraitsBuilder, TakerTraitsLib};
 fn create_test_env() -> Env {
     Env::default()
 }
-
-
 
 // #[test]
 // fn test_has_extension_flag_taker() {

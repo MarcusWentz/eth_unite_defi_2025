@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::{DutchAuctionCalculatorContract, DutchAuctionCalculatorContractClient};
-use order_interface::{Order, AuctionDetails};
+use order_interface::{AuctionDetails, Order};
 use soroban_sdk::{testutils::Address as _, Address, Bytes, BytesN, Env, U256};
 
 #[test]

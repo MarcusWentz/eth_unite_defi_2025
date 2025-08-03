@@ -1,7 +1,6 @@
 #![no_std]
-use core::ops::Add;
 
-use soroban_sdk::{contractclient, Address, Bytes, BytesN, Env, Error, U256};
+use soroban_sdk::{contractclient, Address, Bytes, BytesN, Env, U256};
 
 use base_escrow::Immutables as EscrowImmutables;
 use order_interface::Order;

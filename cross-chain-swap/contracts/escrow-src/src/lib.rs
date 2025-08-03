@@ -13,13 +13,15 @@ pub struct EscrowSrc;
 impl BaseEscrow for EscrowSrc {}
 
 // EVENTS SYMBOLS
+#[allow(dead_code)]
 const ESCROW_SRC: Symbol = symbol_short!("ESC_SRC");
 
 #[contractimpl]
 impl EscrowSrc {
+    #[allow(dead_code)]
     fn withdraw(env: Env, secret: BytesN<32>, immutables: Immutables) {
         let res = Self::only_taker(env.clone(), immutables.clone());
-        if let Err(e) = res {
+        if let Err(_e) = res {
             panic!("Not a taker");
         }
         let res = Self::only_after(
@@ -30,7 +32,7 @@ impl EscrowSrc {
                 Stage::SrcWithdrawal,
             ),
         );
-        if let Err(e) = res {
+        if let Err(_e) = res {
             panic!("Not after withdrawal");
         }
 
@@ -42,11 +44,11 @@ impl EscrowSrc {
                 Stage::SrcCancellation,
             ),
         );
-        if let Err(e) = res {
+        if let Err(_e) = res {
             panic!("Not before withdrawal");
         }
 
-        let res = Self::withdraw_to_priv(
+        let _res = Self::withdraw_to_priv(
             env.clone(),
             secret,
             env.storage()
@@ -57,13 +59,14 @@ impl EscrowSrc {
         );
     }
 
+    #[allow(dead_code)]
     fn withdraw_to_priv(env: Env, secret: BytesN<32>, target: Address, immutables: Immutables) {
         let res = Self::validate_immutables(env.clone(), immutables.clone());
-        if let Err(e) = res {
+        if let Err(_e) = res {
             panic!("Invalid immutables");
         }
         let res = Self::only_valid_secret(env.clone(), secret.clone(), immutables.clone());
-        if let Err(e) = res {
+        if let Err(_e) = res {
             panic!("Invalid secret");
         }
         TokenClient::new(&env, &immutables.token).transfer(

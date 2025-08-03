@@ -55,6 +55,7 @@ pub trait OrderInterface {
         auction_details: AuctionDetails,
     ) -> U256;
 
+    #[allow(non_snake_case)]
     fn _check_remaining_making_amount(env: Env, order: Order, order_hash: BytesN<32>) -> U256;
 
     fn order_hash(env: Env, order: Order) -> BytesN<32>;
@@ -69,7 +70,7 @@ pub trait OrderInterface {
         _target: Address,
         _extension: Bytes,
         _interaction: Bytes,
-        auction_details: AuctionDetails
+        auction_details: AuctionDetails,
     );
 
     fn fill_order(

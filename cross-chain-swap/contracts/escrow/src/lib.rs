@@ -4,3 +4,6 @@ pub mod escrow_factory;
 
 #[cfg(test)]
 pub mod test_escrow_factory;
+
+#[cfg(test)]
+mod test_authentication;

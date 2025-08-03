@@ -2,7 +2,7 @@ use crate::maker_traits::MakerTraitsLib;
 use base_escrow::base_escrow::BaseEscrow;
 use order_interface::Order;
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short,
+    contract, contracttype, symbol_short,
     xdr::{FromXdr, ToXdr},
     Address, Bytes, BytesN, Env, Symbol, Vec, U256,
 };
