@@ -9,10 +9,10 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@stellar/stellar-sdk": "^13.3.0",
     "@1inch/cross-chain-sdk": "^0.1.15",
-    "viem": "^2.0.0",
-    "ethers": "^6.8.0"
+    "@stellar/stellar-sdk": "^13.3.0",
+    "ethers": "^6.8.0",
+    "viem": "^2.0.0"
   },
   "devDependencies": {
     "bun-types": "latest"

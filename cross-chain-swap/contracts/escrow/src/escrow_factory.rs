@@ -104,7 +104,7 @@ impl EscrowFactoryInterface for EscrowFactory {
 
         // Create a mutable copy for modification
         let mut mutable_immutables = dst_immutables.clone();
-        
+
         // Swap out deployment time
         mutable_immutables.timelocks = Timelocks::set_deployed_at(
             env.clone(),

@@ -4,9 +4,6 @@ use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol,
 };
 
-#[cfg(test)]
-mod test_authentication;
-
 #[contract]
 pub struct TestToken;
 

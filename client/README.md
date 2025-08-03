@@ -2,14 +2,9 @@
 
 This project extends 1inch's Fusion+ cross-chain swap protocol to enable bidirectional swaps between Ethereum and Stellar, implementing the complete Fusion+ protocol with hashlock and timelock functionality.
 
-## 🎯 Hackathon Project
+## 🎯 Project Overview
 
-**Track**: Extend Fusion+ to Stellar ($32,000 prize pool)
-- 🥇 1st place: $12,000
-- 🥈 2nd place: $7,500  
-- 🥉 3rd place: $5,000
-- 🏅 4th place: $4,000
-- 🏅 5th place: $3,500
+**Track**: Extend Fusion+ to Stellar
 
 ## ✨ Features
 
@@ -158,7 +153,7 @@ stellar contract build
 - [Cross-Chain Swap Documentation](https://github.com/1inch/cross-chain-swap/tree/master/documentation)
 - [Fusion Protocol Docs](https://github.com/1inch/fusion-protocol/tree/master/docs)
 
-## 🏆 Hackathon Requirements Met
+## 🏆 Requirements Met
 
 - ✅ **Preserve hashlock and timelock functionality**
 - ✅ **Bidirectional swaps (Ethereum ↔ Stellar)**
@@ -167,7 +162,7 @@ stellar contract build
 
 ## 🤝 Contributing
 
-This is a hackathon project demonstrating 1inch Fusion+ protocol extension to Stellar. The implementation follows the original Fusion+ specifications while adapting to Stellar's unique consensus and smart contract model.
+This project demonstrates 1inch Fusion+ protocol extension to Stellar. The implementation follows the original Fusion+ specifications while adapting to Stellar's unique consensus and smart contract model.
 
 ## 📄 License
 

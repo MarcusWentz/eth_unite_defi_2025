@@ -56,7 +56,7 @@ curl -sSf https://soroban.stellar.org | sh
 
 **Perfect for:**
 - ✅ Testing and development
-- ✅ Hackathon demos
+- ✅ Demos
 - ✅ No real funds needed
 - ✅ Instant setup
 
@@ -79,7 +79,7 @@ curl -sSf https://soroban.stellar.org | sh
 **Perfect for:**
 - ✅ Production testing
 - ✅ Real blockchain interaction
-- ✅ Hackathon submissions
+- ✅ Production testing
 - ✅ Live demonstrations
 
 **Required Setup:**

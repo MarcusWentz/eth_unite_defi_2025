@@ -2,14 +2,9 @@
 
 This project extends 1inch's Fusion+ cross-chain swap protocol to enable bidirectional swaps between Ethereum and Stellar, implementing the complete Fusion+ protocol with hashlock and timelock functionality.
 
-## 🎯 Hackathon Project
+## 🎯 Project Overview
 
-**Track**: Extend Fusion+ to Stellar ($32,000 prize pool)
-- 🥇 1st place: $12,000
-- 🥈 2nd place: $7,500  
-- 🥉 3rd place: $5,000
-- 🏅 4th place: $4,000
-- 🏅 5th place: $3,500
+**Track**: Extend Fusion+ to Stellar
 
 ## ✨ Features
 
@@ -23,7 +18,7 @@ This project extends 1inch's Fusion+ cross-chain swap protocol to enable bidirec
 
 ## 🚀 Quick Start
 
-### Option 1: Stellar-Focused Demo (Recommended for Hackathon)
+### Option 1: Stellar-Focused Demo (Recommended)
 
 ```bash
 # Run the complete demo with one command
@@ -201,7 +196,7 @@ forge test
 - [Cross-Chain Swap Documentation](https://github.com/1inch/cross-chain-swap/tree/master/documentation)
 - [Fusion Protocol Docs](https://github.com/1inch/fusion-protocol/tree/master/docs)
 
-## 🏆 Hackathon Requirements Met
+## 🏆 Requirements Met
 
 - ✅ **Preserve hashlock and timelock functionality**
 - ✅ **Bidirectional swaps (Ethereum ↔ Stellar)**
@@ -212,7 +207,7 @@ forge test
 ## 🎯 Demo Scripts
 
 ### `run_stellar_demo.sh`
-Perfect for hackathon demonstrations:
+Perfect for demonstrations:
 - Focuses on Stellar side (no Ethereum setup required)
 - Demonstrates core Fusion+ protocol components
 - Shows hashlock and timelock functionality
@@ -234,7 +229,7 @@ Complete bidirectional demo:
 
 ## 🤝 Contributing
 
-This is a hackathon project demonstrating 1inch Fusion+ protocol extension to Stellar. The implementation follows the original Fusion+ specifications while adapting to Stellar's unique consensus and smart contract model.
+This project demonstrates 1inch Fusion+ protocol extension to Stellar. The implementation follows the original Fusion+ specifications while adapting to Stellar's unique consensus and smart contract model.
 
 ## 📄 License
 
@@ -242,6 +237,6 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**Ready for Hackathon Demo! 🚀**
+**Ready for Demo! 🚀**
 
 Run `./run_stellar_demo.sh` to see the complete Fusion+ protocol in action!

@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
-import { SorobanRpc, TransactionBuilder, Networks, TimeoutInfinite, BASE_FEE, Keypair } from '@stellar/stellar-sdk';
+import { TransactionBuilder, Networks, TimeoutInfinite, BASE_FEE, Keypair } from '@stellar/stellar-sdk';
+import SorobanRpc from '@stellar/stellar-sdk/rpc';
 
 interface Config {
     limitOrderProtocol: string;

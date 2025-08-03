@@ -16,7 +16,7 @@ This script will:
 5. ✅ Install dependencies
 6. ✅ Run comprehensive tests
 7. ✅ Execute the demo
-8. ✅ Verify all hackathon requirements
+8. ✅ Verify all requirements
 
 ## 📋 Prerequisites
 
@@ -117,11 +117,11 @@ The demo provides detailed logging showing:
 - Escrow creation and management
 - Cross-chain coordination
 - Security verification
-- Hackathon requirement validation
+- Requirement validation
 
 ## 🔍 Verification
 
-### Hackathon Requirements
+### Requirements
 The script verifies all requirements:
 
 ✅ **Hashlock and timelock functionality** preserved for non-EVM (Stellar)  
@@ -226,7 +226,7 @@ The deployment is successful when:
 1. ✅ All contracts deploy without errors
 2. ✅ All tests pass
 3. ✅ Demo executes completely
-4. ✅ All hackathon requirements verified
+4. ✅ All requirements verified
 5. ✅ Configuration automatically updated
 6. ✅ Ready for production use
 
