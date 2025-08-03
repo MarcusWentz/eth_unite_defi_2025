@@ -1,8 +1,8 @@
 #![cfg(test)]
 
-use core::fmt::Debug;
 
-use soroban_sdk::{log, testutils::Address as _, Address, Env, U256};
+
+use soroban_sdk::Env;
 
 // use crate::taker_trait::{MakerTraitsBuilder, MakerTraitsLib};
 // use crate::taker_traits;
@@ -13,9 +13,7 @@ fn create_test_env() -> Env {
     Env::default()
 }
 
-fn create_test_address(env: &Env) -> Address {
-    Address::generate(env)
-}
+
 
 // #[test]
 // fn test_has_extension_flag_taker() {
@@ -257,7 +255,7 @@ fn test_unwrap_weth() {
     assert!(!TakerTraitsLib::unwrap_weth(env.clone(), traits_default));
 
     // Test with unwrap WETH flag set
-    let traits_unwrap = TakerTraitsBuilder::new(env.clone()).unwrap_weth().build();
+    let _traits_unwrap = TakerTraitsBuilder::new(env.clone()).unwrap_weth().build();
 
     // assert!(TakerTraitsLib::unwrap_weth(env.clone(), traits_unwrap));
 }
