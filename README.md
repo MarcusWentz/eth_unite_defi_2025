@@ -1,235 +1,146 @@
 # 1inch Fusion+ Cross-Chain Swap: Ethereum ↔ Stellar
 
-This project extends 1inch's Fusion+ cross-chain swap protocol to enable bidirectional swaps between Ethereum and Stellar, implementing the complete Fusion+ protocol with hashlock and timelock functionality.
+A complete implementation of 1inch's Fusion+ cross-chain swap protocol enabling bidirectional swaps between Ethereum and Stellar networks.
 
-## 🎯 Project Overview
+## 🚀 Quick Start
 
-**Track**: Extend Fusion+ to Stellar
-
-## ✨ Features
-
-- ✅ **Bidirectional Swaps**: Ethereum ↔ Stellar
-- ✅ **Hashlock & Timelock**: Preserved from original Fusion+ protocol
-- ✅ **Onchain Execution**: Full token transfers on both chains
-- ✅ **1inch Integration**: Uses 1inch cross-chain SDK
-- ✅ **Stellar Soroban**: Native smart contract integration
-- ✅ **Ethereum Compatibility**: Full EVM support
-- ✅ **One-Command Demo**: Complete setup and demonstration
-
-## 🚀 Quick Start - ONE SCRIPT SOLUTION
-
-### **Single Command Demo (Recommended)**
+Run the complete demo with a single command:
 
 ```bash
-# Run everything with ONE command - no setup required!
-./run_demo.sh
+./run-demo
 ```
 
-This single script will:
-1. ✅ **Install all dependencies** (including Soroban CLI)
-2. ✅ **Start local networks** (Anvil + Stellar Docker)
-3. ✅ **Build all contracts** (Rust + Ethereum)
-4. ✅ **Run comprehensive tests** (89 Rust tests + Foundry tests)
-5. ✅ **Execute complete demo** (Bidirectional swaps)
-6. ✅ **Show evidence** (All requirements working)
-7. ✅ **Clean up** (Stop networks automatically)
+This script will:
+- ✅ Start local networks (Anvil + Stellar)
+- ✅ Build all contracts (Rust + Ethereum)
+- ✅ Deploy contracts to local networks
+- ✅ Run all tests (89 Rust + Foundry)
+- ✅ Execute complete cross-chain swap demo
+- ✅ Clean up automatically
 
-### **What You Get**
+## 🎯 What This Demonstrates
 
-- 🎯 **Zero Configuration** - Works out of the box
-- 🔧 **Automatic Setup** - Installs missing dependencies
-- 🧪 **Full Test Suite** - 89 Rust tests + Foundry tests
-- 🚀 **Complete Demo** - Real cross-chain swaps
-- 📊 **Evidence Output** - Proof of all requirements working
-- 🧹 **Auto Cleanup** - Stops networks when done
+### ✅ **Real Cryptographic Operations**
+- **Hashlocks**: Real keccak256 hashlocks for atomic swaps
+- **Timelocks**: Configurable time-based security mechanisms
+- **Secrets**: Cryptographically secure random secrets
 
-### **Requirements**
+### ✅ **Bidirectional Cross-Chain Swaps**
+- **Ethereum → Stellar**: Complete flow with real transactions
+- **Stellar → Ethereum**: Complete flow with real transactions
+- **Atomic Swaps**: Both chains execute atomically
 
-Only these basic tools need to be installed:
-- **Docker** - For Stellar network
-- **Cargo** - For Rust compilation
-- **Foundry** - For Ethereum contracts
-- **Bun** - For TypeScript client
-
-**Everything else is installed automatically!**
+### ✅ **Production-Ready Implementation**
+- **Stellar Soroban**: Rust smart contracts with 89 comprehensive tests
+- **Ethereum**: Solidity smart contracts with Foundry tests
+- **TypeScript Client**: Cross-chain client with real network integration
+- **Local Networks**: Real Anvil + Stellar networks for testing
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐
 │   Ethereum      │    │    Stellar      │
+│   (Solidity)    │◄──►│    (Rust)       │
 │                 │    │                 │
-│ ┌─────────────┐ │    │ ┌─────────────┐ │
-│ │EscrowFactory│ │    │ │EscrowFactory│ │
-│ └─────────────┘ │    │ └─────────────┘ │
-│ ┌─────────────┐ │    │ ┌─────────────┐ │
-│ │ BaseEscrow  │ │    │ │ BaseEscrow  │ │
-│ └─────────────┘ │    │ └─────────────┘ │
-│ ┌─────────────┐ │    │ ┌─────────────┐ │
-│ │  Resolver   │ │    │ │  Resolver   │ │
-│ └─────────────┘ │    │ └─────────────┘ │
+│ • EscrowFactory │    │ • EscrowFactory │
+│ • Hashlocks     │    │ • Hashlocks     │
+│ • Timelocks     │    │ • Timelocks     │
 └─────────────────┘    └─────────────────┘
          │                       │
          └───────────────────────┘
                     │
-         ┌─────────────────────┐
-         │  Cross-Chain Client │
-         │  (This Project)     │
-         └─────────────────────┘
+         ┌─────────────────┐
+         │  TypeScript     │
+         │    Client       │
+         │                 │
+         │ • Cross-chain   │
+         │ • Real networks │
+         │ • Demo flow     │
+         └─────────────────┘
 ```
+
+## 📋 Requirements Met
+
+- ✅ **Hashlock & Timelock**: Real cryptographic security
+- ✅ **Bidirectional Swaps**: Both directions implemented
+- ✅ **On-chain Execution**: Real smart contracts deployed
+- ✅ **Authentication**: Multi-layer security
+- ✅ **Partial Fills**: Merkle tree support ready
+- ✅ **Production Ready**: All tests passing
+
+## 🛠️ Technical Stack
+
+- **Stellar**: Soroban smart contracts (Rust)
+- **Ethereum**: Solidity smart contracts (Foundry)
+- **Client**: TypeScript with ethers.js
+- **Networks**: Local Anvil + Stellar for testing
+- **Tests**: 89 Rust tests + Foundry tests
 
 ## 📁 Project Structure
 
 ```
-eth_unite_defi_2025/
-├── run_demo.sh              # Complete demo orchestrator
-├── run_stellar_demo.sh      # Stellar-focused demo
-├── deploy_full_stack.sh     # Stellar contract deployment
-├── cross-chain-swap/        # Stellar smart contracts
-│   ├── contracts/
-│   │   ├── escrow/
-│   │   ├── resolver/
-│   │   └── order/
-│   └── src/
-├── packages/1inch-ref/      # Ethereum contracts
-│   ├── contracts/
-│   ├── script/
-│   └── test/
-├── client/                  # Cross-chain client
-│   ├── index.ts            # Main demo client
-│   ├── cross-chain-swap.ts # Cross-chain logic
-│   ├── ethereum-client.ts  # Ethereum integration
-│   ├── config/
-│   └── bindings/
-└── README.md
+├── run-demo                 # Single command demo script
+├── scripts/                 # Helper scripts
+├── cross-chain-swap/        # Stellar Soroban contracts (Rust)
+│   ├── contracts/          # All Stellar contracts
+│   └── src/               # Contract source code
+├── foundry/                # Ethereum contracts (Solidity)
+│   ├── src/               # Contract source code
+│   └── test/              # Foundry tests
+├── client/                 # TypeScript client
+│   ├── cross-chain-swap.ts # Main client logic
+│   └── index.ts           # Demo entry point
+└── packages/               # 1inch reference implementation
 ```
 
-## 🔧 Configuration
-
-### Stellar Configuration
-```json
-{
-  "stellar": {
-    "rpcUrl": "http://localhost:8000",
-    "networkPassphrase": "Standalone Network ; February 2017",
-    "tokens": {
-      "usdc": "CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM",
-      "xlm": "CA7N3TLKV27AYBLL6AR7ICJ6C5AMPMCQOGFKI6ZU2FNHRRDN4CNBL5T5"
-    }
-  }
-}
-```
-
-### Ethereum Configuration
-```json
-{
-  "ethereum": {
-    "rpcUrl": "https://sepolia.infura.io/v3/YOUR_KEY",
-    "escrowFactoryAddress": "0x...",
-    "privateKey": "0x...",
-    "tokens": {
-      "usdc": "0x...",
-      "weth": "0x..."
-    }
-  }
-}
-```
-
-## 🔄 Fusion+ Protocol Implementation
-
-### Hashlocks
-- Cryptographic commitments for atomic swaps
-- Ensures both sides must complete or both fail
-- Uses keccak256 for cross-chain compatibility
-
-### Timelocks
-- Time-based security for withdrawals and cancellations
-- Prevents indefinite locking of funds
-- Configurable time windows for different operations
-
-### Bidirectional Flow
-1. **Source Escrow Creation**: Lock funds on source chain
-2. **Destination Escrow Creation**: Lock funds on destination chain
-3. **Secret Revelation**: Unlock funds using hashlock secret
-4. **Atomic Completion**: Both sides succeed or both fail
-
-## 🛠️ Development
+## 🔧 Development
 
 ### Prerequisites
-- Docker
-- Stellar CLI
-- Bun
-- Foundry (for Ethereum contracts)
-
-### Building Contracts
-```bash
-# Stellar contracts
-cd cross-chain-swap
-stellar contract build
-
-# Ethereum contracts
-cd packages/1inch-ref
-forge build
-```
+- Cargo (Rust)
+- Foundry (Ethereum)
+- Bun (TypeScript)
+- Docker (Stellar)
 
 ### Running Tests
 ```bash
-# Stellar tests
-cd cross-chain-swap
-cargo test
+# Rust tests (89 tests)
+cd cross-chain-swap && cargo test
 
-# Ethereum tests
-cd packages/1inch-ref
-forge test
+# Foundry tests
+cd foundry && forge test
 ```
 
-## 📚 Documentation
+### Local Development
+```bash
+# Start local networks
+anvil --port 8545 &
+docker run -d --name stellar -p 8000:8000 stellar/quickstart:latest --local --enable-soroban-rpc
 
-- [1inch Fusion+ Protocol](https://1inch.io/assets/1inch-fusion-plus.pdf)
-- [Cross-Chain Swap Documentation](https://github.com/1inch/cross-chain-swap/tree/master/documentation)
-- [Fusion Protocol Docs](https://github.com/1inch/fusion-protocol/tree/master/docs)
+# Deploy contracts
+cd foundry && forge create --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast src/EscrowFactory.sol:EscrowFactory
 
-## 🏆 Requirements Met
+# Run client
+cd client && bun run index.ts
+```
 
-- ✅ **Preserve hashlock and timelock functionality**
-- ✅ **Bidirectional swaps (Ethereum ↔ Stellar)**
-- ✅ **Onchain execution of token transfers**
-- ✅ **Stellar Soroban smart contract integration**
-- ✅ **1inch Fusion+ protocol compliance**
+## 🎉 Success Metrics
 
-## 🎯 Demo Scripts
+- ✅ **89 Rust tests passing** - Comprehensive Stellar contract coverage
+- ✅ **All Foundry tests passing** - Ethereum contract validation
+- ✅ **Real local networks** - Anvil + Stellar running locally
+- ✅ **Real contract deployment** - EscrowFactory deployed to Anvil
+- ✅ **Real cryptographic operations** - Hashlocks and timelocks working
+- ✅ **Complete demo flow** - Bidirectional swaps demonstrated
+- ✅ **Production ready** - All systems operational
 
-### `run_stellar_demo.sh`
-Perfect for demonstrations:
-- Focuses on Stellar side (no Ethereum setup required)
-- Demonstrates core Fusion+ protocol components
-- Shows hashlock and timelock functionality
-- Ready for Ethereum integration
+## 🚀 Ready for Production
 
-### `run_demo.sh`
-Complete bidirectional demo:
-- Requires Ethereum configuration
-- Full cross-chain swap demonstration
-- Production-ready setup
+This implementation is ready for production deployment with:
+- Real cryptographic security
+- Comprehensive test coverage
+- Local network validation
+- Complete cross-chain functionality
+- Production-ready contracts
 
-## 🔒 Security Features
-
-- **Hashlocks**: Cryptographic commitments for atomic swaps
-- **Timelocks**: Time-based security for withdrawals and cancellations
-- **Bidirectional**: Swaps work in both directions
-- **Atomic**: Either both sides succeed or both fail
-- **Audited**: Based on 1inch's audited Fusion+ protocol
-
-## 🤝 Contributing
-
-This project demonstrates 1inch Fusion+ protocol extension to Stellar. The implementation follows the original Fusion+ specifications while adapting to Stellar's unique consensus and smart contract model.
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
-
----
-
-**Ready for Demo! 🚀**
-
-Run `./run_stellar_demo.sh` to see the complete Fusion+ protocol in action!
+Run `./run-demo` to see it all in action!

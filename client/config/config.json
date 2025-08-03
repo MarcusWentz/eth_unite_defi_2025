@@ -1,7 +1,7 @@
 {
-  "limitOrderProtocol": "CCDVKEEZJXUURME2NWLWIFE73LXUDW5RPAKH5RK45YJIZO3ZSYS5PHVW",
-  "secret": "1inch_fusion_plus_stellar_hackathon_2025_real_secret_key",
-  "resolver": "CCJKXK3QWCNEWOGQOT5S3S353EZL4FRUHHLTIJUXHA2VZ7TP74L7HI6T",
+  "limitOrderProtocol": "0x0000000000000000000000000000000000000000",
+  "secret": "1inch_fusion_plus_stellar_demo_secret_key",
+  "resolver": "0x0000000000000000000000000000000000000000",
   "withdrawalSrcTimelock": 300,
   "publicWithdrawalSrcTimelock": 600,
   "cancellationSrcTimelock": 900,
@@ -11,20 +11,20 @@
   "cancellationDstTimelock": 450,
   "publicCancellationDstTimelock": 600,
   "ethereum": {
-    "rpcUrl": "https://sepolia.infura.io/v3/demo",
-    "escrowFactoryAddress": "0x1234567890123456789012345678901234567890",
-    "privateKey": "0x1234567890123456789012345678901234567890123456789012345678901234",
-    "chainId": 11155111,
+    "rpcUrl": "http://localhost:8545",
+    "escrowFactoryAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    "chainId": 31337,
     "tokens": {
-      "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-      "weth": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9"
+      "usdc": "0x0000000000000000000000000000000000000000",
+      "weth": "0x0000000000000000000000000000000000000000"
     }
   },
   "stellar": {
     "rpcUrl": "http://localhost:8000",
     "networkPassphrase": "Standalone Network ; February 2017",
     "tokens": {
-      "usdc": "CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM",
+      "usdc": "0x0000000000000000000000000000000000000000",
       "xlm": "CA7N3TLKV27AYBLL6AR7ICJ6C5AMPMCQOGFKI6ZU2FNHRRDN4CNBL5T5"
     }
   },
