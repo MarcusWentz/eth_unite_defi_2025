@@ -1,14 +1,6 @@
 #![no_std]
-use order_interface::Order;
-use soroban_sdk::{contractclient, contracttype, Address, Bytes, BytesN, Env, U256};
-
-#[contracttype]
-#[derive(Clone)]
-pub struct AuctionDetails {
-    pub auction_start_time: U256,
-    pub taking_amount_start: U256,
-    pub taking_amount_end: U256,
-}
+use order_interface::{Order, AuctionDetails};
+use soroban_sdk::{contractclient, Address, Bytes, BytesN, Env, U256};
 
 #[contractclient(name = "DutchAuctionCalculatorContractClient")]
 pub trait DutchAuctionCalculatorInterface {

@@ -16,10 +16,26 @@ NC='\033[0m'
 
 DOCKER_IMAGE="stellar/quickstart:latest"
 STELLAR_PROJECT_DIR=".stellar"
-SOROBAN_PACKAGE_NAME="order" # Matches directory name
+
+SOROBAN_ORDER_NAME="order"      # Matches directory name
 SOROBAN_WASM_NAME="order"     # Matches build output name
+
 SOROBAN_DA_NAME="dutch-auction"
 SOROBAN_DA_WASM_NAME="dutch_auction"
+
+SOROBAN_RESOLVER_NAME="resolver"
+SOROBAN_RESOLVER_WASM_NAME="resolver"
+
+SOROBAN_ESCROW_FACTORY_NAME="escrow-factory"
+SOROBAN_ESCROW_FACTORY_WASM_NAME="escrow"
+
+SOROBAN_ESCROW_SRC_NAME="escrow-src"
+SOROBAN_ESCROW_SRC_WASM_NAME="escrow_src"
+SOROBAN_ESCROW_DST_NAME="escrow-dst"
+SOROBAN_ESCROW_DST_WASM_NAME="escrow_dst"
+
+XLM_ADDRESS="CAGP76LSLAQ7E274ZTFV7RDFZP42H6HKEDLUQ6IWSADHDHSOG5OGDFT7"
+
 STELLAR_IDENTITY_NAME="my-deployer"
 DOCKER_CONTAINER_NAME="stellar"
 EVM_PROJECT_DIR="packages/1inch-ref"
@@ -42,7 +58,7 @@ fail() {
 step "Performing clean reset of environment..."
 docker stop ${DOCKER_CONTAINER_NAME} > /dev/null 2>&1
 docker rm ${DOCKER_CONTAINER_NAME} > /dev/null 2>&1
-Delete ALL known key storage locations
+# Delete ALL known key storage locations
 rm -rf ~/.config/stellar
 rm -rf ./.stellar
 rm -rf ${STELLAR_PROJECT_DIR}/.config
@@ -107,44 +123,104 @@ step "Building contracts..."
 stellar contract build || fail "Cargo build failed."
 DA_WASM_PATH="./target/wasm32v1-none/release/${SOROBAN_DA_WASM_NAME}.wasm"
 
+########################################################
 # 4. Build and Deploy
 step "[1] Building and deploying '${SOROBAN_DA_NAME}' contract..."
 echo "Building contract Wasm..."
 
 DA_CONTRACT_ID=$(stellar contract deploy --wasm ${DA_WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local --alias ${SOROBAN_DA_NAME})
 [ -z "$DA_CONTRACT_ID" ] && fail "Failed to deploy contract."
-success "Contract deployed! ID: ${DA_CONTRACT_ID}"
+success "Contract ${SOROBAN_DA_NAME} deployed! ID: ${DA_CONTRACT_ID}"
 
-# 4. Build and Deploy
-step "[2] Building and deploying '${SOROBAN_PACKAGE_NAME}' contract..."
+step "Generating client bindings..."
+stellar contract bindings typescript --wasm ${DA_WASM_PATH} --output-dir ../client/bindings/${SOROBAN_DA_NAME}
+
+
+########################################################
+step "[2] Building and deploying '${SOROBAN_ORDER_NAME}' contract..."
 echo "Building contract Wasm..."
 
 WASM_PATH="./target/wasm32v1-none/release/${SOROBAN_WASM_NAME}.wasm"
 
 echo "Deploying contract instance..."
-CONTRACT_ID=$(stellar contract deploy --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local --alias ${SOROBAN_PACKAGE_NAME} -- --da_addy ${DA_CONTRACT_ID})
-[ -z "$CONTRACT_ID" ] && fail "Failed to deploy contract."
-success "Contract deployed! ID: ${CONTRACT_ID}"
+ORDER_MIXIN_ADDRESS=$(stellar contract deploy --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local --alias ${SOROBAN_ORDER_NAME} -- --da_addy ${DA_CONTRACT_ID})
+[ -z "$ORDER_MIXIN_ADDRESS" ] && fail "Failed to deploy contract."
+success "Contract ${SOROBAN_ORDER_NAME} deployed! ID: ${ORDER_MIXIN_ADDRESS}"
 
-stellar keys generate ${ALICE_IDENTITY_NAME} > /dev/null
-ALICE_PUBLIC_KEY=$(stellar keys address ${ALICE_IDENTITY_NAME})
-stellar keys generate ${BOB_IDENTITY_NAME} > /dev/null
-BOB_PUBLIC_KEY=$(stellar keys address ${BOB_IDENTITY_NAME})
+step "Generating client bindings..."
+stellar contract bindings typescript --wasm ${WASM_PATH} --output-dir ../client/bindings/${SOROBAN_ORDER_NAME}
 
-MAKER_ASSET="CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM"
-TAKER_ASSET="CA7N3TLKV27AYBLL6AR7ICJ6C5AMPMCQOGFKI6ZU2FNHRRDN4CNBL5T5"
+########################################################
 
-MAKER_TRAITS="967101221531144175919556390646195146547200"
+step "[3] Building and deploying '${SOROBAN_ESCROW_SRC_NAME}' wasm hash..."
+
+WASM_PATH="./target/wasm32v1-none/release/${SOROBAN_ESCROW_SRC_WASM_NAME}.wasm"
+
+ESCROW_SRC_WASM_HASH=$(stellar contract upload --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local)
+[ -z "$ESCROW_SRC_WASM_HASH" ] && fail "Failed to upload contract."
+success "Contract ${SOROBAN_ESCROW_SRC_NAME} wasm hash: ${ESCROW_SRC_WASM_HASH}"
+
+########################################################
+
+step "[4] Building and deploying '${SOROBAN_ESCROW_DST_NAME}' wasm hash..."
+
+WASM_PATH="./target/wasm32v1-none/release/${SOROBAN_ESCROW_DST_WASM_NAME}.wasm"
+
+ESCROW_DST_WASM_HASH=$(stellar contract upload --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local)
+[ -z "$ESCROW_DST_WASM_HASH" ] && fail "Failed to upload contract."
+success "Contract ${SOROBAN_ESCROW_DST_NAME} wasm hash: ${ESCROW_DST_WASM_HASH}"
+
+########################################################
+step "[5] Building and deploying '${SOROBAN_ESCROW_FACTORY_NAME}' contract..."
+echo "Building contract Wasm..."
+
+WASM_PATH="./target/wasm32v1-none/release/${SOROBAN_ESCROW_FACTORY_WASM_NAME}.wasm"
 
 echo "Deploying contract instance..."
-ORDER=$(cat << EOF
-{"maker": "${ALICE_PUBLIC_KEY}", "maker_asset": "${MAKER_ASSET}", "taker_asset": "${TAKER_ASSET}", "maker_traits": "${MAKER_TRAITS}", "receiver": "${BOB_PUBLIC_KEY}", "salt": "1", "taking_amount": "1000000000000000000", "making_amount": "1000000000000000000" }
-EOF
-)
+ESCROW_FACTORY_ADDRESS=$(stellar contract deploy --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local --alias ${SOROBAN_ESCROW_FACTORY_NAME} -- --escrow_src_wasm_hash ${ESCROW_SRC_WASM_HASH} --escrow_dst_wasm_hash ${ESCROW_DST_WASM_HASH} --xlm_address ${XLM_ADDRESS})
 
-echo "Invoking 'calculate_making_amount' function..."
-INVOKE_RESULT=$(stellar contract invoke --id "${CONTRACT_ID}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- calculate_making_amount --order '${ORDER}')
-success "Invoke result: ${INVOKE_RESULT}"
+[ -z "$ESCROW_FACTORY_ADDRESS" ] && fail "Failed to deploy contract."
+success "Contract ${SOROBAN_ESCROW_FACTORY_NAME} deployed! ID: ${ESCROW_FACTORY_ADDRESS}"
+
+step "Generating client bindings..."
+stellar contract bindings typescript --wasm ${WASM_PATH} --output-dir ../client/bindings/${SOROBAN_ESCROW_FACTORY_NAME}
+
+########################################################
+step "[6] Building and deploying '${SOROBAN_RESOLVER_NAME}' contract..."
+echo "Building contract Wasm..."
+
+WASM_PATH="./target/wasm32v1-none/release/${SOROBAN_RESOLVER_WASM_NAME}.wasm"
+
+echo "Deploying contract instance..."
+CONTRACT_ID=$(stellar contract deploy --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local --alias ${SOROBAN_RESOLVER_NAME} -- --escrow_factory_address ${ESCROW_FACTORY_ADDRESS} --order_mixin_address ${ORDER_MIXIN_ADDRESS})
+
+[ -z "$CONTRACT_ID" ] && fail "Failed to deploy contract."
+success "Contract ${SOROBAN_RESOLVER_NAME} deployed! ID: ${CONTRACT_ID}"
+
+step "Generating client bindings..."
+stellar contract bindings typescript --wasm ${WASM_PATH} --output-dir ../client/bindings/${SOROBAN_RESOLVER_NAME}
+
+# ########################################################
+
+# stellar keys generate ${ALICE_IDENTITY_NAME} > /dev/null
+# ALICE_PUBLIC_KEY=$(stellar keys address ${ALICE_IDENTITY_NAME})
+# stellar keys generate ${BOB_IDENTITY_NAME} > /dev/null
+# BOB_PUBLIC_KEY=$(stellar keys address ${BOB_IDENTITY_NAME})
+
+# MAKER_ASSET="CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM"
+# TAKER_ASSET="CA7N3TLKV27AYBLL6AR7ICJ6C5AMPMCQOGFKI6ZU2FNHRRDN4CNBL5T5"
+
+# MAKER_TRAITS="967101221531144175919556390646195146547200"
+
+# echo "Deploying contract instance..."
+# ORDER=$(cat << EOF
+# {"maker": "${ALICE_PUBLIC_KEY}", "maker_asset": "${MAKER_ASSET}", "taker_asset": "${TAKER_ASSET}", "maker_traits": "${MAKER_TRAITS}", "receiver": "${BOB_PUBLIC_KEY}", "salt": "1", "taking_amount": "1000000000000000000", "making_amount": "1000000000000000000" }
+# EOF
+# )
+
+# echo "Invoking 'calculate_making_amount' function..."
+# INVOKE_RESULT=$(stellar contract invoke --id "${CONTRACT_ID}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- calculate_making_amount --order '${ORDER}')
+# success "Invoke result: ${INVOKE_RESULT}"
 
 # # 5. EVM Stages
 # read -p "Stellar setup complete. Proceed with EVM stages? (y/n) " -n 1 -r

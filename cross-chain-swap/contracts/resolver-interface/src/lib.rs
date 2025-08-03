@@ -1,4 +1,6 @@
 #![no_std]
+use core::ops::Add;
+
 use soroban_sdk::{contractclient, Address, Bytes, BytesN, Env, Error, U256};
 
 use base_escrow::Immutables as EscrowImmutables;
@@ -32,7 +34,7 @@ pub trait ResolverInterface {
         amount: U256,
         taker_traits: U256, // Taker traits = U256
         args: Bytes,
-    ) -> Result<Address, Error>; // original function does not and external return
+    ) -> Address; // original function does not and external return
 
     /// Deploys a new escrow contract for taker on the destination chain
     ///
@@ -43,5 +45,5 @@ pub trait ResolverInterface {
         env: Env,
         dst_immutables: EscrowImmutables,
         src_cancellation_timestamp: U256,
-    ) -> Result<Address, Error>; // original function does not and external return
+    ) -> Address; // original function does not and external return
 }

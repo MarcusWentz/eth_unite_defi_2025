@@ -4,7 +4,7 @@ use soroban_sdk::{testutils::Address as _, Address, Bytes, BytesN, Env, U256};
 
 use crate::{Order, OrderProtocol, OrderProtocolClient};
 use dutch_auction::DutchAuctionCalculatorContract;
-use dutch_auction_interface::AuctionDetails;
+use order_interface::AuctionDetails;
 
 #[test]
 fn test_calculate_making_amount() {

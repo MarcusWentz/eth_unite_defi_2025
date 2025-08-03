@@ -16,6 +16,8 @@ escrow = { path = "../escrow" }
 order = { path = "../order" }
 base-escrow = { path = "../base-escrow" }
 escrow-factory-interface = { workspace = true }
+escrow-src = { path = "../escrow-src" }
+utils = { path = "../../utils" }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
