@@ -1,12 +1,11 @@
 #![no_std]
 
-use crate::maker_traits::MakerTraitsLib;
+use crate::{maker_traits::MakerTraitsLib, xlm_orders::{hash, domain_separator_v4}};
 use crate::taker_traits::TakerTraitsLib;
-use dutch_auction_interface::{AuctionDetails, DutchAuctionCalculatorContractClient};
-use order_interface::Order;
+use dutch_auction_interface::DutchAuctionCalculatorContractClient;
+use order_interface::{AuctionDetails, Order, OrderInterface};
 use soroban_sdk::{
-    contract, contractimpl, symbol_short, token::TokenClient, Address, Bytes, BytesN, Env, Symbol,
-    U256,
+    contract, contractimpl, crypto::{Hash}, symbol_short, token::TokenClient, xdr::{FromXdr, ToXdr}, Address, Bytes, BytesN, Env, Symbol, U256
 };
 use utils::math::min_num;
 pub mod consts_trait;
@@ -24,18 +23,98 @@ const ORDER_FILLED_EVENT_KEY: Symbol = symbol_short!("ORDR_F");
  * )
  */
 
+fn check_signature(env: &Env, order: Order, r: BytesN<32>, vs: BytesN<32>) -> bool {
+    let order_hash = hash(env, &order, &domain_separator_v4(env));
+    let maker = order.maker;
+
+    // types are tricky. The only way to get a Hash<32> is to use sha-3 first
+    let _hash = Hash::from(env.crypto().keccak256(&order_hash.try_into().unwrap()));
+
+    let mut signature = Bytes::new(env);
+    signature.extend_from_array(&r.to_array());
+    signature.extend_from_array(&vs.to_array());
+
+    let recovered_maker = env.crypto().secp256k1_recover(
+        &_hash,
+        &signature.try_into().unwrap(),
+        0,
+    );
+    let address_bytes = Bytes::from_xdr(&env, &maker.to_xdr(&env));
+    if address_bytes.is_err() {
+        panic!("Failed to convert address to bytes");
+    }
+
+    let recovered_maker_address = Bytes::from_xdr(&env, &recovered_maker.to_xdr(&env));
+    if recovered_maker_address.is_err() {
+        panic!("Failed to convert recovered maker to address");
+    }
+
+    return address_bytes.unwrap() == recovered_maker_address.unwrap();
+}
+
+/**
+ * Parses the taker traits and args to get the target, extension, and interaction.
+ * @param taker_traits The taker traits.
+ * @param args The args.
+ * @return target The target address.
+ * @return extension The extension.
+ * @return interaction The interaction calldata.
+ * 
+ * @return The target, extension, and interaction.
+ */
+fn parse_args(env: Env, taker_traits: U256, args: Bytes) -> (Address, Bytes, Bytes) {
+    let mut target: Address;
+
+    let mut args = args.clone();
+
+    if TakerTraitsLib::args_has_target(&env, taker_traits.clone()) {
+        let targetXdr = Address::from_xdr(&env, &args.clone().to_xdr(&env));
+        if targetXdr.is_err() {
+            panic!("Failed to convert args to address");
+        }
+        target = targetXdr.unwrap();
+        args = args.slice(20..);
+
+    } else {
+        target = env.current_contract_address();
+    }
+
+    let extension_length = TakerTraitsLib::args_extension_length(&env, taker_traits.clone());
+    let extension: Bytes = if extension_length > U256::from_u32(&env, 0) {
+        let len = extension_length.to_u128().unwrap() as u32;
+        let extension = args.slice(..len);
+        args = args.slice(len..);
+        extension
+    } else {
+        Bytes::new(&env)
+    };
+
+    let interaction_length = TakerTraitsLib::args_interaction_length(&env, taker_traits.clone());
+
+    let interaction: Bytes = if interaction_length > U256::from_u32(&env, 0) {
+        let len = interaction_length.to_u128().unwrap() as u32;
+        let interaction = args.slice(..len);
+        args = args.slice(len..);
+        interaction
+    } else {
+        Bytes::new(&env)
+    };
+
+    (target, extension, interaction)
+}
+
 #[contract]
 pub struct OrderProtocol;
 
 #[contractimpl]
-impl OrderProtocol {
-    pub fn __constructor(env: Env, da_addy: Address) {
+impl OrderInterface for OrderProtocol {
+    fn __constructor(env: Env, da_addy: Address) {
         env.storage()
             .instance()
             .set(&DUTCH_AUCTION_CALCULATOR_ADDRESS_KEY, &da_addy);
     }
 
-    pub fn calculate_making_amount(
+    fn calculate_making_amount(
         env: Env,
         order: Order,
         _extension: Bytes,
@@ -64,7 +143,7 @@ impl OrderProtocol {
         return da_result;
     }
 
-    pub fn calculate_taking_amount(
+    fn calculate_taking_amount(
         env: Env,
         order: Order,
         _extension: Bytes,
@@ -93,7 +172,7 @@ impl OrderProtocol {
         return da_result;
     }
 
-    pub fn fill(
+    fn fill(
         env: Env,
         order: Order,
         order_hash: BytesN<32>,
@@ -239,6 +318,66 @@ impl OrderProtocol {
             env.events()
                 .publish((&ORDER_FILLED_EVENT_KEY, &order_hash, &amount), ());
         }
+    }
+
+    fn _check_remaining_making_amount(env: Env, order: Order, order_hash: BytesN<32>) -> U256 {
+        let mut remaining_making_amount = order.making_amount.clone();
+        if MakerTraitsLib::use_bit_invalidator(&env, order.maker_traits.clone()) {
+            remaining_making_amount = order.making_amount.clone();
+        } else {
+            // todo: implement this
+            panic!("Not implemented");
+        }
+        return remaining_making_amount;
+    }
+
+    fn order_hash(env: Env, order: Order) -> BytesN<32> {
+        hash(&env, &order, &domain_separator_v4(&env))
+    }
+
+    fn fill_order(
+        env: Env,
+        order: Order,
+        r: BytesN<32>,
+        vs: BytesN<32>,
+        amount: U256,
+        taker_traits: U256,
+        target: Address,
+        extension: Bytes,
+        interaction: Bytes,
+        auction_details: AuctionDetails,
+    ) -> (U256, U256, BytesN<32>) {
+        let order_hash = hash(&env, &order, &domain_separator_v4(&env));
+
+        let remaining_making_amount = Self::_check_remaining_making_amount(env.clone(), order.clone(), order_hash.clone());
+
+        if remaining_making_amount == order.making_amount {
+            // let order_hash = hash(&env, &order.clone(), &domain_separator_v4(&env));
+
+            // Checking signature
+            let is_signature_valid = check_signature(&env, order.clone(), r.clone(), vs.clone());
+            if !is_signature_valid {
+                panic!("Invalid signature");
+            }
+        }
+
+        Self::fill(env.clone(), order.clone(), order_hash.clone(), remaining_making_amount.clone(), amount.clone(), taker_traits.clone(), target.clone(), extension.clone(), interaction.clone(), auction_details.clone());
+
+        return (remaining_making_amount, amount, order_hash);
+    }
+
+    fn fill_order_args(
+        env: Env,
+        order: Order,
+        r: BytesN<32>,
+        vs: BytesN<32>,
+        taker_traits: U256,
+        amount: U256,
+        args: Bytes,
+        auction_details: AuctionDetails,
+    ) -> (U256, U256, BytesN<32>) {
+        let (target, extension, interaction) = parse_args(env.clone(), taker_traits.clone(), args);
+        return Self::fill_order(env, order, r, vs, amount, taker_traits, target, extension, interaction, auction_details);
     }
 }
 

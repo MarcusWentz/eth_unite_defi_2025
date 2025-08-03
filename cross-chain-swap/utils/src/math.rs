@@ -21,3 +21,17 @@ pub fn bitand(env: &Env, a: U256, b: U256) -> U256 {
 
     return U256::from_be_bytes(&env, &result);
 }
+
+pub fn bit_or(env: &Env, a: U256, b: U256) -> U256 {
+    let a_bytes = a.to_be_bytes();
+    let b_bytes = b.to_be_bytes();
+
+    let mut result = Bytes::from_array(&env, &[0; 32]);
+
+    for i in 0..32 {
+        let byte_result = a_bytes.get(i).unwrap_or(0) | b_bytes.get(i).unwrap_or(0);
+        result.set(i, byte_result);
+    }
+
+    return U256::from_be_bytes(&env, &result);
+}

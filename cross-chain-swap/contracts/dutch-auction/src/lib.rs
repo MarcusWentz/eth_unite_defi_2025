@@ -1,8 +1,8 @@
 #![no_std]
 use soroban_sdk::{contract, contractimpl, log, Address, Bytes, BytesN, Env, U256};
 
-use dutch_auction_interface::{AuctionDetails, DutchAuctionCalculatorInterface};
-use order_interface::Order;
+use dutch_auction_interface::DutchAuctionCalculatorInterface;
+use order_interface::{AuctionDetails, Order};
 use utils::math::{bitand, max_num, min_num};
 
 const _LOW_128_BITS: u128 = 0xffffffffffffffffffffffffffffffff;

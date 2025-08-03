@@ -1023,10 +1023,12 @@ dependencies = [
  "base-escrow",
  "escrow",
  "escrow-factory-interface",
+ "escrow-src",
  "order",
  "order-interface",
  "resolver-interface",
  "soroban-sdk",
+ "utils",
 ]
 
 [[package]]

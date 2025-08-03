@@ -1,4 +1,4 @@
-use soroban_sdk::{contract, contractimpl, xdr::ToXdr, Address, Env, U256};
+use soroban_sdk::{contract, xdr::ToXdr, Address, Env, U256};
 
 use crate::consts_trait::ConstTrait;
 use utils::math::bitand;
