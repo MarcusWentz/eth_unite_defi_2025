@@ -16,49 +16,42 @@ This project extends 1inch's Fusion+ cross-chain swap protocol to enable bidirec
 - ✅ **Ethereum Compatibility**: Full EVM support
 - ✅ **One-Command Demo**: Complete setup and demonstration
 
-## 🚀 Quick Start
+## 🚀 Quick Start - ONE SCRIPT SOLUTION
 
-### Option 1: Stellar-Focused Demo (Recommended)
-
-```bash
-# Run the complete demo with one command
-./run_stellar_demo.sh
-```
-
-This will:
-1. Start Stellar network
-2. Deploy Stellar contracts
-3. Install dependencies
-4. Run the cross-chain swap demo
-5. Show results
-
-### Option 2: Full Bidirectional Demo
+### **Single Command Demo (Recommended)**
 
 ```bash
-# Set up environment variables
-export SEPOLIA_RPC_URL="https://sepolia.infura.io/v3/YOUR_KEY"
-export PRIVATE_KEY="0xYOUR_PRIVATE_KEY"
-
-# Run the complete demo
+# Run everything with ONE command - no setup required!
 ./run_demo.sh
 ```
 
-### Option 3: Manual Setup
+This single script will:
+1. ✅ **Install all dependencies** (including Soroban CLI)
+2. ✅ **Start local networks** (Anvil + Stellar Docker)
+3. ✅ **Build all contracts** (Rust + Ethereum)
+4. ✅ **Run comprehensive tests** (89 Rust tests + Foundry tests)
+5. ✅ **Execute complete demo** (Bidirectional swaps)
+6. ✅ **Show evidence** (All requirements working)
+7. ✅ **Clean up** (Stop networks automatically)
 
-```bash
-# 1. Start Stellar network
-docker run --rm -d --name stellar-network -p 8000:8000 -p 11626:11626 \
-  stellar/quickstart:latest --standalone --enable-soroban-rpc --protocol-version 20
+### **What You Get**
 
-# 2. Deploy contracts
-./deploy_full_stack.sh
+- 🎯 **Zero Configuration** - Works out of the box
+- 🔧 **Automatic Setup** - Installs missing dependencies
+- 🧪 **Full Test Suite** - 89 Rust tests + Foundry tests
+- 🚀 **Complete Demo** - Real cross-chain swaps
+- 📊 **Evidence Output** - Proof of all requirements working
+- 🧹 **Auto Cleanup** - Stops networks when done
 
-# 3. Install client dependencies
-cd client && bun install
+### **Requirements**
 
-# 4. Run demo
-bun run index.ts
-```
+Only these basic tools need to be installed:
+- **Docker** - For Stellar network
+- **Cargo** - For Rust compilation
+- **Foundry** - For Ethereum contracts
+- **Bun** - For TypeScript client
+
+**Everything else is installed automatically!**
 
 ## 🏗️ Architecture
 
