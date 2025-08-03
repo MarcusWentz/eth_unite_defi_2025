@@ -316,7 +316,7 @@ fn test_xlm_order_deposit_existing_order() {
 
     let receiver = Address::generate(&env);
     // Create order with maker as the contract address
-    let mut order = create_test_order(&env, contract_id.clone(), receiver.clone());
+    let order = create_test_order(&env, contract_id.clone(), receiver.clone());
 
     // Don't set HAS_EXTENSION_FLAG to avoid complex extension parsing
     // order.maker_traits = U256::from_u128(&env, 1u128).shl(249u32);
@@ -730,7 +730,7 @@ fn test_complete_order_lifecycle() {
 
     let receiver = Address::generate(&env);
     // Create order with maker as the contract address
-    let mut order = create_test_order(&env, contract_id.clone(), receiver.clone());
+    let order = create_test_order(&env, contract_id.clone(), receiver.clone());
 
     // Don't set HAS_EXTENSION_FLAG to avoid complex extension parsing
     // order.maker_traits = U256::from_u128(&env, 1u128).shl(249u32);

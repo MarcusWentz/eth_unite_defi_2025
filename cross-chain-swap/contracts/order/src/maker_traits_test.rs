@@ -1,7 +1,5 @@
 #![cfg(test)]
 
-
-
 use soroban_sdk::{testutils::Address as _, Address, Env};
 
 use crate::maker_traits::{MakerTraitsBuilder, MakerTraitsLib};

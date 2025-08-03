@@ -1,17 +1,31 @@
 {
-  "name": "client",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+  "name": "1inch-fusion-stellar-client",
+  "version": "1.0.0",
+  "description": "1inch Fusion+ Cross-Chain Swap Client for Ethereum ↔ Stellar",
+  "main": "index.ts",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --watch index.ts",
+    "test": "bun test"
   },
   "dependencies": {
     "@1inch/cross-chain-sdk": "^0.1.15",
     "@stellar/stellar-sdk": "^13.3.0",
-    "viem": "^2.33.2"
-  }
+    "ethers": "^6.8.0",
+    "viem": "^2.0.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "keywords": [
+    "1inch",
+    "fusion",
+    "cross-chain",
+    "swap",
+    "stellar",
+    "ethereum",
+    "defi"
+  ],
+  "author": "Your Team",
+  "license": "MIT"
 }

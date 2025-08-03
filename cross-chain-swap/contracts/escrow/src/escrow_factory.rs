@@ -71,8 +71,7 @@ impl EscrowFactoryInterface for EscrowFactory {
     // Function for creating destination chain escrow contract
     fn create_dst_escrow(
         env: Env,
-        // dst_immutables is modified later, so #[allow(unused_mut)] is used to hide the warning that it doesn't need mut when it does.
-        mut dst_immutables: Immutables,
+        dst_immutables: Immutables,
         src_cancellation_timestamp: U256,
         native_token_lock_value: u128,
     ) -> Address {
@@ -103,17 +102,20 @@ impl EscrowFactoryInterface for EscrowFactory {
             // panic!("debug provided_native_amount: {:?}", provided_native_amount);
         }
 
+        // Create a mutable copy for modification
+        let mut mutable_immutables = dst_immutables.clone();
+
         // Swap out deployment time
-        dst_immutables.timelocks = Timelocks::set_deployed_at(
+        mutable_immutables.timelocks = Timelocks::set_deployed_at(
             env.clone(),
-            dst_immutables.timelocks,
+            mutable_immutables.timelocks,
             U256::from_u128(&env, env.ledger().timestamp() as u128),
         );
 
         // Make sure that the deployment time is valid
         if Timelocks::get(
             env.clone(),
-            dst_immutables.timelocks.clone(),
+            mutable_immutables.timelocks.clone(),
             Stage::DstCancellation,
         )
         .gt(&src_cancellation_timestamp)
@@ -121,16 +123,16 @@ impl EscrowFactoryInterface for EscrowFactory {
             panic!("InvalidCreationTime");
         }
 
-        // Extract values before moving dst_immutables
-        let maker = dst_immutables.maker.clone();
-        let hashlock = dst_immutables.hashlock.clone();
-        let taker = dst_immutables.taker.clone();
-        let token = dst_immutables.token.clone();
-        let amount = dst_immutables.amount.clone();
+        // Extract values before moving mutable_immutables
+        let maker = mutable_immutables.maker.clone();
+        let hashlock = mutable_immutables.hashlock.clone();
+        let taker = mutable_immutables.taker.clone();
+        let token = mutable_immutables.token.clone();
+        let amount = mutable_immutables.amount.clone();
 
         // Generate salt similar to keccak256(immutables, ESCROW_IMMUTABLES_SIZE)
         // Hash the entire immutables struct to create a deterministic salt
-        let salt = env.crypto().keccak256(&dst_immutables.to_xdr(&env));
+        let salt = env.crypto().keccak256(&mutable_immutables.to_xdr(&env));
 
         // Fetching our wasm hash for dst escrow
         let wasm_hash = env

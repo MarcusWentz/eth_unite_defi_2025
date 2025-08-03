@@ -1,5 +1,5 @@
 #![no_std]
-use order_interface::{Order, AuctionDetails};
+use order_interface::{AuctionDetails, Order};
 use soroban_sdk::{contractclient, Address, Bytes, BytesN, Env, U256};
 
 #[contractclient(name = "DutchAuctionCalculatorContractClient")]
