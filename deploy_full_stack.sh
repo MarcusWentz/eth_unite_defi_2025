@@ -34,6 +34,9 @@ SOROBAN_ESCROW_SRC_WASM_NAME="escrow_src"
 SOROBAN_ESCROW_DST_NAME="escrow-dst"
 SOROBAN_ESCROW_DST_WASM_NAME="escrow_dst"
 
+SOROBAN_TEST_TOKEN_NAME="test-token"
+SOROBAN_TEST_TOKEN_WASM_NAME="test_token"
+
 XLM_ADDRESS="CAGP76LSLAQ7E274ZTFV7RDFZP42H6HKEDLUQ6IWSADHDHSOG5OGDFT7"
 
 STELLAR_IDENTITY_NAME="my-deployer"
@@ -73,15 +76,27 @@ success "All dependencies are installed."
 
 # 2. Start Stellar Network
 step "Starting local Stellar network..."
-docker run -d --rm \
-  -p 8000:8000 \
-  --name ${DOCKER_CONTAINER_NAME} \
-  ${DOCKER_IMAGE} \
-  --local \
-  --enable-soroban-rpc > /dev/null || fail "Failed to start Docker container."
 
-echo "Waiting for the network to initialize..."
-sleep 30
+# Check if container is already running
+if docker ps -q -f "name=${DOCKER_CONTAINER_NAME}" | grep -q .; then
+    echo "Docker container '${DOCKER_CONTAINER_NAME}' is already running."
+    success "Using existing Stellar network."
+else
+    # Remove any stopped containers with the same name
+    docker rm ${DOCKER_CONTAINER_NAME} > /dev/null 2>&1
+    
+    docker run -d --rm \
+      -p 8000:8000 \
+      --name ${DOCKER_CONTAINER_NAME} \
+      ${DOCKER_IMAGE} \
+      --local \
+      --enable-soroban-rpc > /dev/null || fail "Failed to start Docker container."
+
+    echo "Waiting for the network to initialize..."
+    sleep 30
+fi
+
+# Wait for the network to be ready
 until curl -s -f -o /dev/null http://localhost:8000/; do
   echo -n "."
   sleep 2
@@ -151,6 +166,30 @@ step "Generating client bindings..."
 stellar contract bindings typescript --wasm ${WASM_PATH} --output-dir ../client/bindings/${SOROBAN_ORDER_NAME}
 
 ########################################################
+step "[2.1] Building and deploying test tokens..."
+
+WASM_PATH="./target/wasm32v1-none/release/${SOROBAN_TEST_TOKEN_WASM_NAME}.wasm"
+
+echo "Deploying maker token (USDC)..."
+MAKER_TOKEN_ADDRESS=$(stellar contract deploy --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local --alias maker-token -- --admin ${PUBLIC_KEY})
+[ -z "$MAKER_TOKEN_ADDRESS" ] && fail "Failed to deploy maker token."
+success "Maker token deployed! ID: ${MAKER_TOKEN_ADDRESS}"
+
+echo "Deploying taker token (DAI)..."
+TAKER_TOKEN_ADDRESS=$(stellar contract deploy --wasm ${WASM_PATH} --source-account ${STELLAR_IDENTITY_NAME} --network local --alias taker-token -- --admin ${PUBLIC_KEY})
+[ -z "$TAKER_TOKEN_ADDRESS" ] && fail "Failed to deploy taker token."
+success "Taker token deployed! ID: ${TAKER_TOKEN_ADDRESS}"
+
+echo "Minting tokens to deployer account..."
+stellar contract invoke --id "${MAKER_TOKEN_ADDRESS}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- mint --admin ${PUBLIC_KEY} --to ${PUBLIC_KEY} --amount 1000000000000000000000
+stellar contract invoke --id "${TAKER_TOKEN_ADDRESS}" --source-account ${STELLAR_IDENTITY_NAME} --network local -- mint --admin ${PUBLIC_KEY} --to ${PUBLIC_KEY} --amount 1000000000000000000000
+
+success "Tokens minted to deployer account."
+
+step "Generating test token client bindings..."
+stellar contract bindings typescript --wasm ${WASM_PATH} --output-dir ../client/bindings/${SOROBAN_TEST_TOKEN_NAME}
+
+########################################################
 
 step "[3] Building and deploying '${SOROBAN_ESCROW_SRC_NAME}' wasm hash..."
 
@@ -200,7 +239,42 @@ success "Contract ${SOROBAN_RESOLVER_NAME} deployed! ID: ${CONTRACT_ID}"
 step "Generating client bindings..."
 stellar contract bindings typescript --wasm ${WASM_PATH} --output-dir ../client/bindings/${SOROBAN_RESOLVER_NAME}
 
-# ########################################################
+########################################################
+step "Updating client configuration..."
+
+cat > ../client/config/config.json << EOF
+{
+    "escrowFactory": "${ESCROW_FACTORY_ADDRESS}",
+    "limitOrderProtocol": "${ORDER_MIXIN_ADDRESS}",
+    "deployer": "${PUBLIC_KEY}",
+    "maker": "${PUBLIC_KEY}",
+    "srcToken": "${MAKER_TOKEN_ADDRESS}",
+    "dstToken": "${TAKER_TOKEN_ADDRESS}",
+    "resolver": "${CONTRACT_ID}",
+    "srcAmount": 100,
+    "dstAmount": 300,
+    "safetyDeposit": 1,
+    "withdrawalSrcTimelock": 300,
+    "publicWithdrawalSrcTimelock": 600,
+    "cancellationSrcTimelock": 900,
+    "publicCancellationSrcTimelock": 1200,
+    "withdrawalDstTimelock": 300,
+    "publicWithdrawalDstTimelock": 600,
+    "cancellationDstTimelock": 900,
+    "secret": "secret1",
+    "stages": [
+        "deployMocks",
+        "deployEscrowSrc",
+        "deployEscrowDst",
+        "withdrawSrc",
+        "withdrawDst"
+    ]
+}
+EOF
+
+success "Client configuration updated with deployed addresses."
+
+########################################################
 
 # stellar keys generate ${ALICE_IDENTITY_NAME} > /dev/null
 # ALICE_PUBLIC_KEY=$(stellar keys address ${ALICE_IDENTITY_NAME})

@@ -2,6 +2,7 @@ import { parseArgs } from "util";
 import { Keypair, Contract, rpc as StellarRpc, TransactionBuilder, Networks, BASE_FEE } from "@stellar/stellar-sdk";
 import { Client as ResolverClient, type Order } from "./bindings/resolver/src/index";
 import { Client as OrderClient } from "./bindings/order/src/index";
+import { Client as TokenClient } from "./bindings/test-token/src/index";
 import { keccak256, toHex, type Hex } from 'viem';
 import {  
     HashLock,  
@@ -36,10 +37,16 @@ const createAccount = (
 }
 
 type ScriptConfig = {
+    escrowFactory: string,
     limitOrderProtocol: string,
-    secret: string,
-
+    deployer: string,
+    maker: string,
+    srcToken: string,
+    dstToken: string,
     resolver: string,
+    srcAmount: number,
+    dstAmount: number,
+    safetyDeposit: number,
 
     // src timelocks
     withdrawalSrcTimelock: number,
@@ -51,7 +58,8 @@ type ScriptConfig = {
     withdrawalDstTimelock: number,
     publicWithdrawalDstTimelock: number,
     cancellationDstTimelock: number,
-    publicCancellationDstTimelock: number,
+    
+    secret: string,
 }
 
 const getConfig = async (): Promise<ScriptConfig> => {
@@ -94,6 +102,13 @@ const getHashlock = (secrets: [Hex, ...Hex[]]) => {
         return HashLock.forSingleFill(secrets[0])
     }
     return secrets.map(secret => keccak256(toHex(secret)));
+}
+
+// Helper function to convert hex string to Buffer
+const hexToBuffer = (hex: string): Buffer => {
+    // Remove '0x' prefix if present
+    const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+    return Buffer.from(cleanHex, 'hex');
 }
 
 const getTimelocks = (config: ScriptConfig) => {
@@ -144,15 +159,18 @@ const main = async (
     const bob = createAccount();
     await topupWithFriendbot(bob.publicKey());
 
+    console.log('Alice:', alice.publicKey());
+    console.log('Bob:', bob.publicKey());
+
     const order = {
         maker: alice.publicKey(),
-        maker_asset: "CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM",
-        taker_asset: "CA7N3TLKV27AYBLL6AR7ICJ6C5AMPMCQOGFKI6ZU2FNHRRDN4CNBL5T5",
+        maker_asset: scriptConfig.srcToken, // Use actual deployed test token
+        taker_asset: scriptConfig.dstToken, // Use actual deployed test token
         maker_traits: 967101221531144175919556390646195146547200n,
         receiver: bob.publicKey(),
         salt: 1n,
-        taking_amount: 1000000000000000000n,
-        making_amount: 1000000000000000000n,
+        taking_amount: BigInt(scriptConfig.dstAmount * 10**18),
+        making_amount: BigInt(scriptConfig.srcAmount * 10**18),
     }
 
     const resolver_client = new ResolverClient({
@@ -178,48 +196,56 @@ const main = async (
 
     console.log(orderHash.result, '<<<<<<<<< order hash')
 
-    const signature = signOrder(alice, orderHash.result)
+    // Create token client for maker token
+    const token_client = new TokenClient({
+        contractId: scriptConfig.srcToken,
+        networkPassphrase: networkConfigs[Network.TESTNET].networkPassphrase,
+        rpcUrl: getRpcUrl(networkConfigs[Network.TESTNET].rpcUrl),
+        allowHttp: networkConfigs[Network.TESTNET].rpcUrl.startsWith("http://"),
+    });
 
-    const response = await resolver_client.deploy_src({
+    // Skip token operations for now to test core functionality
+    console.log('Skipping token operations, using XLM addresses...');
+
+    const signature = signOrder(alice, orderHash.result);
+
+    // Convert hashlock and order_hash to Buffer for the immutables
+    const hashlockBuffer = hexToBuffer(hashlock.toString());
+    
+    // The orderHash.result is already a Buffer, so we can use it directly
+    const orderHashBuffer = orderHash.result;
+
+    // Use the build method to get the packed U256 value
+    const timelocksValue = timelocks.build();
+
+    const deployTx = await resolver_client.deploy_src({
         immutables: {
-            amount: 1000000000000000000n,
-            hashlock: BigInt(hashlock.toString()),
+            amount: BigInt(scriptConfig.srcAmount * 10**18),
+            hashlock: hashlockBuffer,
             maker: alice.publicKey(),
-            order_hash: hashlock.toString(),
-            safety_deposit: 1000000000000000000n,
+            order_hash: orderHashBuffer,
+            safety_deposit: BigInt(scriptConfig.safetyDeposit * 10**18),
             taker: bob.publicKey(),
-            timelocks: BigInt(timelocks.toString()),
-            token: "CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM",
+            timelocks: timelocksValue,
+            token: scriptConfig.srcToken, // Use actual deployed test token
         },
         order,
         signature_r: randomBytes(32),
         signature_vs: randomBytes(32),
-        amount: 1000000000000000000n,
+        amount: BigInt(scriptConfig.srcAmount * 10**18),
         taker_traits: 0n,
         args: Buffer.from([]),
     })
 
-    const aliceAccount = await server.getAccount(alice.publicKey());
-
-    let builtTransaction = new TransactionBuilder(aliceAccount, {
-        fee: BASE_FEE,
-        networkPassphrase: Networks.TESTNET,
-      })
-        .addOperation(resolver_client.call("deploy_src", {
-            order,
-            timelocks,
-            hashlock: hashlock.toString(),
-            secretHashes: secretHashes.map((s) => s.toString()),
-            receiver: bob.publicKey(),
-        }))
-        .setTimeout(30)
-        .build();
-
-    let preparedTransaction = await server.prepareTransaction(builtTransaction);
-
-    preparedTransaction.sign(alice);
-
-    console.log(preparedTransaction);
+    // Sign and send the transaction
+    const result = await deployTx.signAndSend({
+        signTransaction: (tx: any) => {
+            tx.sign(alice);
+            return tx;
+        }
+    });
+    
+    console.log('Deploy transaction result:', result);
 }
 
 
