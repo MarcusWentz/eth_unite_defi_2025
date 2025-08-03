@@ -1,7 +1,12 @@
 import { parseArgs } from "util";
 import { Keypair, Contract, rpc as StellarRpc, TransactionBuilder, Networks, BASE_FEE } from "@stellar/stellar-sdk";
-import { Client as DutchAuctionClient } from "./bindings/dutch_auction/src/index";
+import { Client as ResolverClient, type Order } from "./bindings/resolver/src/index";
 import { Client as OrderClient } from "./bindings/order/src/index";
+import { keccak256, toHex, type Hex } from 'viem';
+import {  
+    HashLock,  
+    TimeLocks,
+} from '@1inch/cross-chain-sdk'  
 
 
 enum Network {
@@ -30,6 +35,32 @@ const createAccount = (
     return address ? Keypair.fromSecret(address) : Keypair.random();
 }
 
+type ScriptConfig = {
+    limitOrderProtocol: string,
+    secret: string,
+
+    resolver: string,
+
+    // src timelocks
+    withdrawalSrcTimelock: number,
+    publicWithdrawalSrcTimelock: number,
+    cancellationSrcTimelock: number,
+    publicCancellationSrcTimelock: number,
+
+    // dst timelocks
+    withdrawalDstTimelock: number,
+    publicWithdrawalDstTimelock: number,
+    cancellationDstTimelock: number,
+    publicCancellationDstTimelock: number,
+}
+
+const getConfig = async (): Promise<ScriptConfig> => {
+    const config = await Bun.file("config/config.json").json();
+    return {
+        ...config,
+    }
+}
+
 const topupWithFriendbot = async (
     address: string,
 ) => {
@@ -48,28 +79,70 @@ const randomBytes = (length: number) => {
     return Buffer.from(crypto.getRandomValues(new Uint8Array(length)));
 }
 
-type Config = {
-    orderContractAddress: string,
+const getSecrets = (secretSalt: string) => {
+    const secret = keccak256(toHex(secretSalt));
+    const hashlock = keccak256(secret);
+
+    // for partial fill it would be an array of secrets
+    const secrets = [hashlock]
+
+    return secrets;
+}
+
+const getHashlock = (secrets: [Hex, ...Hex[]]) => {
+    if (secrets.length === 1) {
+        return HashLock.forSingleFill(secrets[0])
+    }
+    return secrets.map(secret => keccak256(toHex(secret)));
+}
+
+const getTimelocks = (config: ScriptConfig) => {
+    return TimeLocks.new({
+        srcWithdrawal: BigInt(config.withdrawalSrcTimelock),
+        srcPublicWithdrawal: BigInt(config.publicWithdrawalSrcTimelock),
+        srcCancellation: BigInt(config.cancellationSrcTimelock),
+        srcPublicCancellation: BigInt(config.publicCancellationSrcTimelock),
+
+        dstWithdrawal: BigInt(config.withdrawalDstTimelock),
+        dstPublicWithdrawal: BigInt(config.publicWithdrawalDstTimelock),
+        dstCancellation: BigInt(config.cancellationDstTimelock),
+    })
+}
+
+const signOrder = (
+    keypair: Keypair,
+    orderHash: Buffer,
+) => {
+    const signature = keypair.signDecorated(orderHash);
+    return signature;
 }
 
 const main = async (
-    config: Config,
 ) => {
 
     const server = new StellarRpc.Server(
-        server_url,
+        getRpcUrl(server_url),
         {
             allowHttp: server_url.startsWith("http://"),
         }
     );
+
+    const scriptConfig = await getConfig();
+
+    const secrets = getSecrets(scriptConfig.secret);
+    if (!secrets.length) {
+        throw new Error("No secrets found");
+    }
+    const hashlock = getHashlock(secrets as [Hex, ...Hex[]]);
+    const secretHashes = secrets.map((s) => HashLock.hashSecret(s))
+
+    const timelocks = getTimelocks(scriptConfig);
 
     const alice = createAccount();
     await topupWithFriendbot(alice.publicKey());
 
     const bob = createAccount();
     await topupWithFriendbot(bob.publicKey());
-
-    // const order_contract = new Contract(contract_addresses.order);
 
     const order = {
         maker: alice.publicKey(),
@@ -82,44 +155,72 @@ const main = async (
         making_amount: 1000000000000000000n,
     }
 
-    console.log(config.orderContractAddress);
-    const order_client = new OrderClient({
-        contractId: config.orderContractAddress,
+    const resolver_client = new ResolverClient({
+        contractId: scriptConfig.resolver,
         networkPassphrase: networkConfigs[Network.TESTNET].networkPassphrase,
         rpcUrl: getRpcUrl(networkConfigs[Network.TESTNET].rpcUrl),
         allowHttp: networkConfigs[Network.TESTNET].rpcUrl.startsWith("http://"),
     })
 
-    const order_hash = randomBytes(32);
-
-    const simulateTx = await order_client.calculate_making_amount({
-        order,
-        _extension: Buffer.from([]),
-        requested_taking_amount: 1000000000000000000n,
-        remaining_making_amount: 1000000000000000000n,
-        order_hash: order_hash,
-        auction_details: {
-            auction_start_time: 1n,
-            taking_amount_start: 1n,
-            taking_amount_end: 1n,
-        }
+    const order_client = new OrderClient({
+        contractId: scriptConfig.limitOrderProtocol,
+        networkPassphrase: networkConfigs[Network.TESTNET].networkPassphrase,
+        rpcUrl: getRpcUrl(networkConfigs[Network.TESTNET].rpcUrl),
+        allowHttp: networkConfigs[Network.TESTNET].rpcUrl.startsWith("http://"),
     })
 
-    const data = simulateTx.result;
+    /**
+     * Author: @Skanislav
+     * HERE I STOPPED BECAUSE I NEED TO SLEEP
+     */
 
-    console.log(data);
+    const orderHash = await order_client.order_hash({ order });
+
+    console.log(orderHash.result, '<<<<<<<<< order hash')
+
+    const signature = signOrder(alice, orderHash.result)
+
+    const response = await resolver_client.deploy_src({
+        immutables: {
+            amount: 1000000000000000000n,
+            hashlock: BigInt(hashlock.toString()),
+            maker: alice.publicKey(),
+            order_hash: hashlock.toString(),
+            safety_deposit: 1000000000000000000n,
+            taker: bob.publicKey(),
+            timelocks: BigInt(timelocks.toString()),
+            token: "CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM",
+        },
+        order,
+        signature_r: randomBytes(32),
+        signature_vs: randomBytes(32),
+        amount: 1000000000000000000n,
+        taker_traits: 0n,
+        args: Buffer.from([]),
+    })
+
+    const aliceAccount = await server.getAccount(alice.publicKey());
+
+    let builtTransaction = new TransactionBuilder(aliceAccount, {
+        fee: BASE_FEE,
+        networkPassphrase: Networks.TESTNET,
+      })
+        .addOperation(resolver_client.call("deploy_src", {
+            order,
+            timelocks,
+            hashlock: hashlock.toString(),
+            secretHashes: secretHashes.map((s) => s.toString()),
+            receiver: bob.publicKey(),
+        }))
+        .setTimeout(30)
+        .build();
+
+    let preparedTransaction = await server.prepareTransaction(builtTransaction);
+
+    preparedTransaction.sign(alice);
+
+    console.log(preparedTransaction);
 }
 
-const { values } = parseArgs({
-    args: Bun.argv,
-    options: {
-      orderContractAddress: {
-        type: 'string',
-      },
-    },
-    strict: true,
-    allowPositionals: true,
-  });
 
-
-main(values as Config)
+main()
