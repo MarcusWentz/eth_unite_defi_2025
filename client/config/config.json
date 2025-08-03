@@ -1,46 +1,32 @@
 {
-    "escrowFactory": "0xa7bCb4EAc8964306F9e3764f67Db6A7af6DdF99A",
-    "limitOrderProtocol": "CC3KUIKQ6FV3IQUPB6ZAL5VDOBNKVI4AZ22XALK5MGEWAF4WBZH7HS3Y",
-    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    "maker": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-    "srcToken": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    "dstToken": "CAGP76LSLAQ7E274ZTFV7RDFZP42H6HKEDLUQ6IWSADHDHSOG5OGDFT7",
-    "resolver": "CDPH54LWN2HHXPR2GYVWON2E6IXSQKWSPFC3VODS73SSEUYKAHBI4RLH",
-    "srcAmount": 100,
-    "dstAmount": 300,
-    "safetyDeposit": 1,
-    "withdrawalSrcTimelock": 300,
-    "publicWithdrawalSrcTimelock": 600,
-    "cancellationSrcTimelock": 900,
-    "publicCancellationSrcTimelock": 1200,
-    "withdrawalDstTimelock": 300,
-    "publicWithdrawalDstTimelock": 600,
-    "cancellationDstTimelock": 900,
-    "secret": "secret1",
-    "stages": [
-        "deployMocks",
-        "deployEscrowSrc",
-        "deployEscrowDst",
-        "withdrawSrc",
-        "withdrawDst"
-    ],
-    "ethereum": {
-        "rpcUrl": "https://sepolia.infura.io/v3/demo",
-        "escrowFactoryAddress": "0x1234567890123456789012345678901234567890",
-        "privateKey": "0x1234567890123456789012345678901234567890123456789012345678901234",
-        "chainId": 11155111,
-        "tokens": {
-            "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-            "weth": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9"
-        }
-    },
-    "stellar": {
-        "rpcUrl": "http://localhost:8000",
-        "networkPassphrase": "Standalone Network ; February 2017",
-        "tokens": {
-            "usdc": "CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM",
-            "xlm": "CA7N3TLKV27AYBLL6AR7ICJ6C5AMPMCQOGFKI6ZU2FNHRRDN4CNBL5T5"
-        }
-    },
-    "swapDirection": "stellar_demo"
+  "limitOrderProtocol": "CC65HMEQWFHV2MZWTNAKO4C5YBHSM5FD7Q4CR5YU54SDCXMYA5FMZHF5",
+  "secret": "demo_secret_for_hackathon_2025",
+  "resolver": "CBDDO2PIYNZR73BON2RVUM4XD6U6JRNMY3RNWIJF6WTPW2NI5SVRZV2F",
+  "withdrawalSrcTimelock": 300,
+  "publicWithdrawalSrcTimelock": 600,
+  "cancellationSrcTimelock": 900,
+  "publicCancellationSrcTimelock": 1200,
+  "withdrawalDstTimelock": 150,
+  "publicWithdrawalDstTimelock": 300,
+  "cancellationDstTimelock": 450,
+  "publicCancellationDstTimelock": 600,
+  "ethereum": {
+    "rpcUrl": "https://sepolia.infura.io/v3/demo",
+    "escrowFactoryAddress": "0x1234567890123456789012345678901234567890",
+    "privateKey": "0x1234567890123456789012345678901234567890123456789012345678901234",
+    "chainId": 11155111,
+    "tokens": {
+      "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      "weth": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9"
+    }
+  },
+  "stellar": {
+    "rpcUrl": "http://localhost:8000",
+    "networkPassphrase": "Standalone Network ; February 2017",
+    "tokens": {
+      "usdc": "CAPXKPSVXRJ56ZKR6XRA7SB6UGQEZD2UNRO4OP6V2NYTQTV6RFJGIRZM",
+      "xlm": "CA7N3TLKV27AYBLL6AR7ICJ6C5AMPMCQOGFKI6ZU2FNHRRDN4CNBL5T5"
+    }
+  },
+  "swapDirection": "stellar_demo"
 }

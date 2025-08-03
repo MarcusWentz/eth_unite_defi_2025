@@ -96,7 +96,10 @@ export class CrossChainSwapClient {
         const friendbotUrl = `${this.config.stellar.rpcUrl}/friendbot?addr=${address}`;
         const response = await fetch(friendbotUrl);
         if (!response.ok) {
-            throw new Error(`Failed to topup account ${address} with friendbot`);
+            const errorText = await response.text();
+            console.warn(`Friendbot response: ${response.status} - ${errorText}`);
+            // Don't throw error, just log warning - account might already be funded
+            return;
         }
         console.log(`Friendbot response: ${response.status}`);
         return response;
