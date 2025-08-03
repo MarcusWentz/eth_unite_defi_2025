@@ -1,7 +1,7 @@
 {
-  "limitOrderProtocol": "CBRLTP7EEZVLCUFJC4K5TVKCKP4PKOGD44I2QOUWH3J5WMC2KKFHPYFM",
+  "limitOrderProtocol": "CCDVKEEZJXUURME2NWLWIFE73LXUDW5RPAKH5RK45YJIZO3ZSYS5PHVW",
   "secret": "1inch_fusion_plus_stellar_hackathon_2025_real_secret_key",
-  "resolver": "CADR3E2ZWFE4AFF2G6ZORMESL5EMDFFSLO2QO2ZQ5R7CO3D65RSVO7UL",
+  "resolver": "CCJKXK3QWCNEWOGQOT5S3S353EZL4FRUHHLTIJUXHA2VZ7TP74L7HI6T",
   "withdrawalSrcTimelock": 300,
   "publicWithdrawalSrcTimelock": 600,
   "cancellationSrcTimelock": 900,
