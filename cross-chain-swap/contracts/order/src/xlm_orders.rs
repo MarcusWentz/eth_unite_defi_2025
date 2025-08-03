@@ -13,15 +13,16 @@ pub struct XLMOrders;
 
 impl BaseEscrow for XLMOrders {}
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 #[contracttype]
 pub struct XLMOrdersArr {
-    maker: Address,
-    balance: u128,
-    maximum_premium: u32,
-    auction_duration: u32,
+    pub maker: Address,
+    pub balance: u128,
+    pub maximum_premium: u32,
+    pub auction_duration: u32,
 }
 
+#[derive(Eq, PartialEq, Debug)]
 #[contracttype]
 pub enum ValidationResult {
     MissingOrderExtension,
@@ -280,7 +281,7 @@ impl XLMOrders {
         }
     }
 
-    fn _get_current_premium_multiplier(
+    pub fn _get_current_premium_multiplier(
         env: Env,
         order: XLMOrdersArr,
         expiration_time: U256,
@@ -304,7 +305,7 @@ impl XLMOrders {
     /// Mass invalidate bit orders for a given nonce/epoch
     /// This is equivalent to the Solidity bit invalidator mass invalidation
     /// Based on BitInvalidatorLib.massInvalidate logic
-    fn mass_invalidate_bit_orders(
+    pub fn mass_invalidate_bit_orders(
         env: &Env,
         _maker: Address,
         nonce_or_epoch: u64,
@@ -331,7 +332,7 @@ impl XLMOrders {
 
     /// Fully fill a remaining order (mark it as completely filled)
     /// This is equivalent to RemainingInvalidatorLib.fullyFilled()
-    fn fully_fill_remaining_order(env: &Env, _maker: Address, order_hash: BytesN<32>) {
+    pub fn fully_fill_remaining_order(env: &Env, _maker: Address, order_hash: BytesN<32>) {
         // Set the remaining invalidator to type(uint256).max (fully filled)
         // This is equivalent to RemainingInvalidatorLib.fullyFilled()
         let fully_filled_invalidator = U256::from_u128(env, u128::MAX);
@@ -382,11 +383,10 @@ pub fn get_extension(env: &Env, extension: &Bytes, field: DynamicField) -> Bytes
 
     // Get the concatenated data (everything after the first 32 bytes)
     let concat_len = extension.len() - 32;
-    let mut concat_array = [0u8; 1024]; // Use fixed size array, adjust size as needed
+    let mut concat_data = Bytes::new(env);
     for i in 0..concat_len {
-        concat_array[i as usize] = extension.get((i + 32) as u32).unwrap_or(0);
+        concat_data.push_back(extension.get((i + 32) as u32).unwrap_or(0));
     }
-    let concat_data = Bytes::from_array(env, &concat_array);
 
     // Get the field data using the offsets
     get_field_from_offsets(env, offsets, concat_data, field)
@@ -417,7 +417,7 @@ fn get_field_from_offsets(env: &Env, offsets: U256, concat: Bytes, field: Dynami
     );
 
     // Extract end offset: and(0xffffffff, shr(bitShift, offsets))
-    // This gets the 32 bits starting at bitShift + 32 position
+    // This gets the 32 bits starting at bitShift position
     let end_offset = bitand(env, offsets.shr(bit_shift), U256::from_u32(env, 0xffffffff));
 
     // Convert to u32 for array indexing
@@ -443,19 +443,19 @@ fn get_field_from_offsets(env: &Env, offsets: U256, concat: Bytes, field: Dynami
 
     // Extract the field data using individual byte access
     let field_len = end_pos - start;
-    let mut field_array = [0u8; 1024]; // Use fixed size array
+    let mut field_data = Bytes::new(env);
     for i in 0..field_len {
-        field_array[i] = concat.get((start + i) as u32).unwrap_or(0);
+        field_data.push_back(concat.get((start + i) as u32).unwrap_or(0));
     }
 
-    Bytes::from_array(env, &field_array)
+    field_data
 }
 
 pub fn hash(env: &Env, order: &Order, domain_separator: &BytesN<32>) -> BytesN<32> {
     // First, calculate the keccak256 of the typehash
     let typehash_bytes = LIMIT_ORDER_TYPEHASH.as_bytes();
     let mut typehash_array = [0u8; 128]; // Fixed size array
-    for i in 0..typehash_bytes.len() {
+    for i in 0..typehash_bytes.len().min(128) {
         typehash_array[i] = typehash_bytes[i];
     }
     let typehash = env
