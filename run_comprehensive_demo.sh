@@ -206,9 +206,9 @@ update_config_for_demo() {
     cd client
     cat > config/config.json << 'EOF'
 {
-  "limitOrderProtocol": "CC65HMEQWFHV2MZWTNAKO4C5YBHSM5FD7Q4CR5YU54SDCXMYA5FMZHF5",
-  "secret": "demo_secret_for_hackathon_2025",
-  "resolver": "CBDDO2PIYNZR73BON2RVUM4XD6U6JRNMY3RNWIJF6WTPW2NI5SVRZV2F",
+  "limitOrderProtocol": "CBRLTP7EEZVLCUFJC4K5TVKCKP4PKOGD44I2QOUWH3J5WMC2KKFHPYFM",
+  "secret": "1inch_fusion_plus_stellar_hackathon_2025_real_secret_key",
+  "resolver": "CADR3E2ZWFE4AFF2G6ZORMESL5EMDFFSLO2QO2ZQ5R7CO3D65RSVO7UL",
   "withdrawalSrcTimelock": 300,
   "publicWithdrawalSrcTimelock": 600,
   "cancellationSrcTimelock": 900,
@@ -339,6 +339,29 @@ show_results() {
     echo "   ✅ Stellar Soroban smart contract integration"
     echo ""
     echo "🚀 Ready for hackathon presentation!"
+    echo -e "${NC}"
+    
+    echo -e "${CYAN}"
+    echo "=================================================="
+    echo "  🚀 Production Setup Instructions"
+    echo "=================================================="
+    echo ""
+    echo "To run the FULL bidirectional demo with real Ethereum:"
+    echo ""
+    echo "1. 📝 Update client/config/production.json with:"
+    echo "   • Your Infura Project ID"
+    echo "   • Your Ethereum private key with funds"
+    echo "   • Your deployed EscrowFactory address"
+    echo ""
+    echo "2. 🏗️  Deploy Ethereum contracts:"
+    echo "   cd packages/1inch-ref"
+    echo "   forge script script/DeployEscrowFactory.s.sol --fork-url \$SEPOLIA_RPC --broadcast"
+    echo ""
+    echo "3. 🔄 Run full bidirectional demo:"
+    echo "   cp client/config/production.json client/config/config.json"
+    echo "   ./run_comprehensive_demo.sh"
+    echo ""
+    echo "4. 🎯 The demo will now execute REAL transactions on both chains!"
     echo -e "${NC}"
 }
 

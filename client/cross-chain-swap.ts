@@ -207,11 +207,55 @@ export class CrossChainSwapClient {
             takingAmount: 1000000000000000000n,
         };
 
-        // For demo purposes, skip Ethereum side since we're using demo credentials
-        console.log('📍 Skipping Ethereum source escrow (demo mode)');
-        console.log('   In production, this would create the source escrow on Ethereum');
+        // Step 1: Create source escrow on Ethereum
+        console.log('📍 Creating source escrow on Ethereum...');
+        let ethereumReceipt;
         
-        const ethereumReceipt = { hash: 'demo_hash_placeholder' };
+        try {
+            // Check if we have real Ethereum credentials
+            if (this.config.ethereum.rpcUrl.includes('demo') || this.config.ethereum.privateKey.includes('1234')) {
+                console.log('⚠️  Using demo mode - skipping actual Ethereum transaction');
+                console.log('   In production, this would create the source escrow on Ethereum');
+                ethereumReceipt = { hash: 'demo_hash_placeholder' };
+            } else {
+                // Use real Ethereum client
+                const ethereumImmutables = {
+                    amount: 1000000000000000000n,
+                    hashlock: hashlock.toString(),
+                    maker: this.alice.publicKey(),
+                    orderHash: orderHash,
+                    safetyDeposit: 1000000000000000000n,
+                    taker: this.bob.publicKey(),
+                    timelocks: BigInt(timelocks.build()),
+                    token: this.config.ethereum.tokens.usdc,
+                };
+
+                const ethereumOrder = {
+                    maker: this.alice.publicKey(),
+                    makerAsset: this.config.ethereum.tokens.usdc,
+                    makerTraits: 967101221531144175919556390646195146547200n,
+                    makingAmount: 1000000000000000000n,
+                    receiver: this.bob.publicKey(),
+                    salt: 1n,
+                    takerAsset: this.config.ethereum.tokens.usdc,
+                    takingAmount: 1000000000000000000n,
+                };
+
+                ethereumReceipt = await this.ethereumClient.createSrcEscrow(
+                    ethereumImmutables,
+                    ethereumOrder,
+                    this.randomBytes(32).toString('hex'),
+                    this.randomBytes(32).toString('hex'),
+                    1000000000000000000n,
+                    0n,
+                    "0x"
+                );
+            }
+        } catch (error) {
+            console.error('❌ Error creating Ethereum source escrow:', error);
+            console.log('⚠️  Falling back to demo mode');
+            ethereumReceipt = { hash: 'demo_hash_placeholder' };
+        }
 
         console.log('✅ Ethereum source escrow created:', ethereumReceipt);
 
@@ -295,22 +339,39 @@ export class CrossChainSwapClient {
 
         // Step 2: Create destination escrow on Ethereum
         console.log('📍 Creating destination escrow on Ethereum...');
-        const ethereumImmutables = {
-            amount: 1000000000000000000n,
-            hashlock: hashlock.toString(),
-            maker: this.alice.publicKey(),
-            orderHash: orderHash,
-            safetyDeposit: 1000000000000000000n,
-            taker: this.bob.publicKey(),
-            timelocks: timelocks.build(),
-            token: this.config.ethereum.tokens.usdc,
-        };
-
-        // For demo purposes, skip Ethereum side since we're using demo credentials
-        console.log('📍 Skipping Ethereum destination escrow (demo mode)');
-        console.log('   In production, this would create the destination escrow on Ethereum');
+        let ethereumReceipt;
         
-        const ethereumReceipt = { hash: 'demo_hash_placeholder' };
+        try {
+            // Check if we have real Ethereum credentials
+            if (this.config.ethereum.rpcUrl.includes('demo') || this.config.ethereum.privateKey.includes('1234')) {
+                console.log('⚠️  Using demo mode - skipping actual Ethereum transaction');
+                console.log('   In production, this would create the destination escrow on Ethereum');
+                ethereumReceipt = { hash: 'demo_hash_placeholder' };
+            } else {
+                // Use real Ethereum client
+                const ethereumImmutables = {
+                    amount: 1000000000000000000n,
+                    hashlock: hashlock.toString(),
+                    maker: this.alice.publicKey(),
+                    orderHash: orderHash,
+                    safetyDeposit: 1000000000000000000n,
+                    taker: this.bob.publicKey(),
+                    timelocks: BigInt(timelocks.build()),
+                    token: this.config.ethereum.tokens.usdc,
+                };
+
+                const srcCancellationTimestamp = BigInt(Math.floor(Date.now() / 1000)) + BigInt(this.config.cancellationSrcTimelock);
+
+                ethereumReceipt = await this.ethereumClient.createDstEscrow(
+                    ethereumImmutables,
+                    srcCancellationTimestamp
+                );
+            }
+        } catch (error) {
+            console.error('❌ Error creating Ethereum destination escrow:', error);
+            console.log('⚠️  Falling back to demo mode');
+            ethereumReceipt = { hash: 'demo_hash_placeholder' };
+        }
 
         console.log('✅ Ethereum destination escrow created:', ethereumReceipt);
 

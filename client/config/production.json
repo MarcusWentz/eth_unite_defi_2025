@@ -1,7 +1,7 @@
 {
-  "limitOrderProtocol": "CBRLTP7EEZVLCUFJC4K5TVKCKP4PKOGD44I2QOUWH3J5WMC2KKFHPYFM",
+  "limitOrderProtocol": "CC65HMEQWFHV2MZWTNAKO4C5YBHSM5FD7Q4CR5YU54SDCXMYA5FMZHF5",
   "secret": "1inch_fusion_plus_stellar_hackathon_2025_real_secret_key",
-  "resolver": "CADR3E2ZWFE4AFF2G6ZORMESL5EMDFFSLO2QO2ZQ5R7CO3D65RSVO7UL",
+  "resolver": "CBDDO2PIYNZR73BON2RVUM4XD6U6JRNMY3RNWIJF6WTPW2NI5SVRZV2F",
   "withdrawalSrcTimelock": 300,
   "publicWithdrawalSrcTimelock": 600,
   "cancellationSrcTimelock": 900,
@@ -11,9 +11,9 @@
   "cancellationDstTimelock": 450,
   "publicCancellationDstTimelock": 600,
   "ethereum": {
-    "rpcUrl": "https://sepolia.infura.io/v3/demo",
-    "escrowFactoryAddress": "0x1234567890123456789012345678901234567890",
-    "privateKey": "0x1234567890123456789012345678901234567890123456789012345678901234",
+    "rpcUrl": "https://sepolia.infura.io/v3/YOUR_ACTUAL_INFURA_PROJECT_ID",
+    "escrowFactoryAddress": "0xYOUR_DEPLOYED_ESCROW_FACTORY_ADDRESS",
+    "privateKey": "0xYOUR_ACTUAL_PRIVATE_KEY_WITH_FUNDS",
     "chainId": 11155111,
     "tokens": {
       "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
@@ -28,5 +28,5 @@
       "xlm": "CA7N3TLKV27AYBLL6AR7ICJ6C5AMPMCQOGFKI6ZU2FNHRRDN4CNBL5T5"
     }
   },
-  "swapDirection": "stellar_demo"
-}
+  "swapDirection": "both"
+} 
